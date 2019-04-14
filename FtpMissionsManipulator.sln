@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FtpMissionsManipulator", "FtpMissionsManipulator\FtpMissionsManipulator.csproj", "{EF8E1640-16DF-4F62-816F-BA2B0E7E4CDD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FtpMissionsManipulatorTests", "FtpMissionsManipulatorTests\FtpMissionsManipulatorTests.csproj", "{68B89C2F-8B5E-48E8-AE95-3AA93393DFB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EF8E1640-16DF-4F62-816F-BA2B0E7E4CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF8E1640-16DF-4F62-816F-BA2B0E7E4CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF8E1640-16DF-4F62-816F-BA2B0E7E4CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF8E1640-16DF-4F62-816F-BA2B0E7E4CDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68B89C2F-8B5E-48E8-AE95-3AA93393DFB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68B89C2F-8B5E-48E8-AE95-3AA93393DFB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68B89C2F-8B5E-48E8-AE95-3AA93393DFB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68B89C2F-8B5E-48E8-AE95-3AA93393DFB8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {002E42B2-FFE4-4FAF-94A5-B5C0F0887756}
+	EndGlobalSection
+EndGlobal
