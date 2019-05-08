@@ -2,7 +2,7 @@
 
 namespace FtpMissionsManipulator
 {
-    public interface IVersionComparer : IComparer<MissionVersion>
+    public interface IMissionVersionComparer : IComparer<MissionVersion>
     {
         bool IsFormatCorrect(MissionVersion version);
     }

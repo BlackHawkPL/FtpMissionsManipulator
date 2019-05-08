@@ -1,6 +1,7 @@
 ﻿using System;
 using FtpMissionsManipulator;
 using NUnit.Framework;
+// ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
 namespace FtpMissionsManipulatorTests
 {
@@ -8,16 +9,18 @@ namespace FtpMissionsManipulatorTests
     public class MissionVersionComparerTests
     {
         private MissionVersionComparer _sut;
+        private IMissionVersionFactory _versionFactory;
 
         [SetUp]
         public void Setup()
         {
             _sut = new MissionVersionComparer();
+            _versionFactory = new MissionVersionFactory();
         }
 
         private MissionVersion GetMissionVersion(string version)
         {
-            return new MissionVersion(version, _sut);
+            return _versionFactory.GetMissionVersion(version, _sut);
         }
 
         [TestCase("v1", "v1.0", ExpectedResult = 0)]
@@ -30,8 +33,8 @@ namespace FtpMissionsManipulatorTests
         [TestCase("v1.5", "v2.0", ExpectedResult = -1)]
         public int Compare_Test(string firstVersion, string secondVersion)
         {
-            var firstMissionVersion = new MissionVersion(firstVersion, _sut);
-            var secondMissionVersion = new MissionVersion(secondVersion, _sut);
+            var firstMissionVersion = _versionFactory.GetMissionVersion(firstVersion, _sut);
+            var secondMissionVersion = _versionFactory.GetMissionVersion(secondVersion, _sut);
             var result = _sut.Compare(firstMissionVersion, secondMissionVersion);
 
             if (result == 0)
@@ -51,7 +54,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("v1,2,3", ExpectedResult = false)]
         public bool IsFormatCorrect_Test(string version)
         {
-            var mv = new MissionVersion(version, _sut);
+            var mv = _versionFactory.GetMissionVersion(version, _sut);
 
             var result = _sut.IsFormatCorrect(mv);
 
@@ -64,10 +67,7 @@ namespace FtpMissionsManipulatorTests
             var a = GetMissionVersion("v1.2a");
             var b = GetMissionVersion("v1.2b");
 
-            Assert.Throws<ArgumentException>(() =>
-            {
-                var unused = _sut.Compare(a, b);
-            });
+            Assert.Throws<ArgumentException>(() => _sut.Compare(a, b));
         }
 
         [Test]
@@ -75,10 +75,7 @@ namespace FtpMissionsManipulatorTests
         {
             var a = GetMissionVersion("v1.2a");
 
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                var unused = _sut.Compare(null, a);
-            });
+            Assert.Throws<ArgumentNullException>(() => _sut.Compare(null, a));
         }
 
         [Test]
@@ -86,16 +83,13 @@ namespace FtpMissionsManipulatorTests
         {
             var a = GetMissionVersion("v1.2a");
 
-            Assert.Throws<ArgumentNullException>(() =>
-            {
-                var unused = _sut.Compare(a, null);
-            });
+            Assert.Throws<ArgumentNullException>(() => _sut.Compare(a, null));
         }
 
         [Test]
         public void IsFormatCorrect_ArgumentIsNull_ArgumentNullExceptionThrown()
         {
-            var mv = GetMissionVersion("v1.2");
+            var unused = GetMissionVersion("v1.2");
 
             Assert.Throws<ArgumentNullException>(() => _sut.IsFormatCorrect(null));
         }

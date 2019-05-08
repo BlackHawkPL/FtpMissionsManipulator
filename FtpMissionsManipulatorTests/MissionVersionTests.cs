@@ -7,31 +7,38 @@ namespace FtpMissionsManipulatorTests
     [TestFixture]
     public class MissionVersionTests
     {
-        private Mock<IVersionComparer> _comparerMock;
+        private Mock<IMissionVersionComparer> _comparerMock;
         private MissionVersion _sut;
-        private const int ComparisonResult = 0;
+        private MissionVersionFactory _versionFactory;
+        private const int ComparerResult = 0;
         private const string CorrectVersionString = "v1";
+        private const string DifferentCorrectVersionString = "v2";
+
+        public MissionVersion GetMissionVersion(string versionString)
+        {
+            return _versionFactory.GetMissionVersion(versionString, _comparerMock.Object);
+        }
 
         [SetUp]
         public void Setup()
         {
-            _comparerMock = new Mock<IVersionComparer>();
+            _versionFactory = new MissionVersionFactory();
+            _comparerMock = new Mock<IMissionVersionComparer>();
             _comparerMock
                 .Setup(c => c.Compare(It.IsAny<MissionVersion>(), It.IsAny<MissionVersion>()))
-                .Returns(ComparisonResult);
+                .Returns(ComparerResult);
 
-            _sut = new MissionVersion(CorrectVersionString, _comparerMock.Object);
-
+            _sut = GetMissionVersion(CorrectVersionString);
         }
 
         [Test]
         public void CompareTo_CorrectVersions_ReturnsResultFromComparer()
         {
-            var b = new MissionVersion(CorrectVersionString, _comparerMock.Object);
+            var b = GetMissionVersion(CorrectVersionString);
 
             var result = _sut.CompareTo(b);
 
-            Assert.AreEqual(ComparisonResult, result);
+            Assert.AreEqual(ComparerResult, result);
         }
 
         [Test]
@@ -48,7 +55,7 @@ namespace FtpMissionsManipulatorTests
             _sut.Equals(null);
 
             _comparerMock.Verify(c =>
-                c.Compare(It.IsAny<MissionVersion>(), It.IsAny<MissionVersion>()),
+                    c.Compare(It.IsAny<MissionVersion>(), It.IsAny<MissionVersion>()),
                 Times.Never());
         }
 
@@ -68,6 +75,98 @@ namespace FtpMissionsManipulatorTests
             var result = _sut.Equals(other);
 
             Assert.AreEqual(false, result);
+        }
+
+        [Test]
+        public void Equals_OtherIsDifferentInstanceButSameState_ReturnsTrue()
+        {
+            var other = GetMissionVersion(CorrectVersionString);
+
+            var result = _sut.Equals(other);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Equals_OtherIsSameObjectButCastDown_ReturnsTrue()
+        {
+            var other = GetMissionVersion(CorrectVersionString);
+
+            var result = _sut.Equals((object) other);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Equals_OtherIsDifferentMissionVersionCastDownToObject_ReturnsTrue()
+        {
+            var other = GetMissionVersion(DifferentCorrectVersionString);
+
+            var result = _sut.Equals((object) other);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Equals_OtherIsNullObject_ReturnsFalse()
+        {
+            object other = null;
+
+            var result = _sut.Equals(other);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void Equals_OtherIsSameMissionVersionCastDownToObject_ReturnsTrue()
+        {
+            object other = _sut;
+
+            var result = _sut.Equals(other);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void GetHashCode_ObjectsHaveDifferentState_HashCodesAreDifferent()
+        {
+            var other = GetMissionVersion(DifferentCorrectVersionString);
+
+            var result = _sut.GetHashCode();
+            var otherResult = other.GetHashCode();
+
+            Assert.AreNotEqual(result, otherResult);
+        }
+
+        [Test]
+        public void GetHashCode_ObjectHaveSameState_HasCodesAreTheSame()
+        {
+            var other = GetMissionVersion(CorrectVersionString);
+
+            var result = _sut.GetHashCode();
+            var otherResult = other.GetHashCode();
+
+            Assert.AreEqual(result, otherResult);
+        }
+
+        [Test]
+        public void IsVersionCorrect_ValidState_UsesComparerImplementation()
+        {
+            _comparerMock
+                .Setup(c => c.IsFormatCorrect(It.IsAny<MissionVersion>()))
+                .Returns(true);
+
+            var result = _sut.IsVersionCorrect();
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void IsVersionCorrect_ValidState_ComparerImplementationInvoked()
+        {
+            var result = _sut.IsVersionCorrect();
+
+            _comparerMock.Verify(c => c.IsFormatCorrect(_sut), Times.Once);
         }
     }
 }

@@ -4,18 +4,18 @@ namespace FtpMissionsManipulator
 {
     public class MissionVersion : IComparable<MissionVersion>, IEquatable<MissionVersion>
     {
-        private readonly IVersionComparer _versionComparer;
+        private readonly IMissionVersionComparer _missionVersionComparer;
         public string TextRepresentation { get; }
 
-        public MissionVersion(string textRepresentation, IVersionComparer versionComparer)
+        public MissionVersion(string textRepresentation, IMissionVersionComparer missionVersionComparer)
         {
             TextRepresentation = textRepresentation;
-            _versionComparer = versionComparer;
+            _missionVersionComparer = missionVersionComparer;
         }
 
         public int CompareTo(MissionVersion other)
         {
-            return _versionComparer.Compare(this, other);
+            return _missionVersionComparer.Compare(this, other);
         }
 
         public bool Equals(MissionVersion other)
@@ -35,6 +35,11 @@ namespace FtpMissionsManipulator
         public override int GetHashCode()
         {
             return TextRepresentation != null ? TextRepresentation.GetHashCode() : 0;
+        }
+
+        public bool IsVersionCorrect()
+        {
+            return _missionVersionComparer.IsFormatCorrect(this);
         }
     }
 }

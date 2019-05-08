@@ -3,12 +3,10 @@ using System.Linq;
 
 namespace FtpMissionsManipulator
 {
-    public class MissionVersionComparer : IVersionComparer
+    public class MissionVersionComparer : IMissionVersionComparer
     {
         private int[] GetNumberRepresentation(string originalRepresentation)
         {
-            if (originalRepresentation == null)
-                throw new ArgumentNullException(nameof(originalRepresentation), "Provided version string is null");
             var versionText = originalRepresentation.TrimStart('v', 'V');
             var numbers = versionText.Split('.');
             return numbers.Select(n =>
