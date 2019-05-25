@@ -2,6 +2,11 @@
 {
     public class Mission
     {
+        public Mission()
+        {
+
+        }
+
         public Mission(string fullName, MissionType type, int size, string name, MissionVersion version, string terrain)
         {
             FullName = fullName;

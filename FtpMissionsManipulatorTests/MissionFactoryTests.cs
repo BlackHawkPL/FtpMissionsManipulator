@@ -40,8 +40,8 @@ namespace FtpMissionsManipulatorTests
 
         private Mock<IMissionFilenameParser> _parserMock;
         private MissionFactory _sut;
-        private string _validMissionName = "CO10_Test_v1.terrain.pbo";
-        private string _invalidMissionName = "CO_Test.terrain.pbo";
+        private readonly string _validMissionName = "CO10_Test_v1.terrain.pbo";
+        private readonly string _invalidMissionName = "CO_Test.terrain.pbo";
         private readonly int _mockSize = 42;
         private readonly MissionType _mockType = MissionType.Coop;
         private readonly string _mockName = "TestName";
@@ -100,6 +100,14 @@ namespace FtpMissionsManipulatorTests
             var result = _sut.GetMission(_validMissionName);
 
             Assert.AreEqual(_mockVersion, result.Version);
+        }
+
+        [Test]
+        public void GetMission_ValidInput_FullMissionNameSet()
+        {
+            var result = _sut.GetMission(_validMissionName);
+
+            Assert.AreEqual(_validMissionName, result.FullName);
         }
     }
 }

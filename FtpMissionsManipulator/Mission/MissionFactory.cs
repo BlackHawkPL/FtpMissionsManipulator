@@ -2,7 +2,7 @@
 
 namespace FtpMissionsManipulator
 {
-    public class MissionFactory
+    public class MissionFactory : IMissionFactory
     {
         private readonly IMissionFilenameParser _filenameParser;
 
