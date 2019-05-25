@@ -8,7 +8,7 @@ namespace FtpMissionsManipulator
         private int[] GetNumberRepresentation(string originalRepresentation)
         {
             var versionText = originalRepresentation.TrimStart('v', 'V');
-            var numbers = versionText.Split('.');
+            var numbers = versionText.Split(new [] {'.', '_'});
             return numbers.Select(n =>
             {
                 var hasParsed = int.TryParse(n, out var parsed);

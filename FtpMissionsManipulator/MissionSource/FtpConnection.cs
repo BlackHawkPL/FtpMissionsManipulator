@@ -27,7 +27,7 @@ namespace FtpMissionsManipulator.MissionSource
             if (!(WebRequest.Create(GetDirectoryAtAddress(directory)) is FtpWebRequest request))
                 throw new Exception("webrequest was null");
         
-            request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+            request.Method = WebRequestMethods.Ftp.ListDirectory;
             request.Credentials = new NetworkCredential(_userName, _password);
 
             if (!(request.GetResponse() is FtpWebResponse response))

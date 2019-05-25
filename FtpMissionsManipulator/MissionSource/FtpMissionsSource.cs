@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace FtpMissionsManipulator.MissionSource
@@ -19,8 +20,25 @@ namespace FtpMissionsManipulator.MissionSource
             var result = _ftpConnection.GetStringResponse(directory);
 
             return result
-                .Split('\n')
-                .Select(missionName => _missionFactory.GetMission(missionName))
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                .Select(missionName =>
+                {
+                    missionName = missionName
+                        .Trim()
+                        .Split('/')
+                        .Last();
+                    try
+                    {
+                        var mission = _missionFactory.GetMission(missionName);
+                        return mission;
+                    }
+                    catch (ArgumentException e)
+                    {
+                        Console.WriteLine($"{missionName}: {e.Message}");
+                        return null;
+                    }
+                })
+                .Where(m => m != null)
                 .ToList();
         }
     }

@@ -48,6 +48,8 @@ namespace FtpMissionsManipulatorTests
         [TestCase("v1.2.3.4", ExpectedResult = true)]
         [TestCase("v123", ExpectedResult = true)]
         [TestCase("v123.567.890", ExpectedResult = true)]
+        [TestCase("v1_2", ExpectedResult = true)]
+        [TestCase("v1_2_3", ExpectedResult = true)]
         [TestCase("v", ExpectedResult = false)]
         [TestCase("vx", ExpectedResult = false)]
         [TestCase("v1.2.3a", ExpectedResult = false)]

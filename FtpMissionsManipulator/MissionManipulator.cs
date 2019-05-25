@@ -1,19 +1,27 @@
-﻿using FtpMissionsManipulator.MissionSource;
+﻿using System.Collections.Generic;
+using FtpMissionsManipulator.MissionSource;
 
 namespace FtpMissionsManipulator
 {
     public class MissionManipulator
     {
+        private const string FinalDirectory = "_FINAL";
         private readonly IMissionsSource _missionsSource;
+        private const string LiveDirectory = "SRV1";
 
         public MissionManipulator(IMissionsSource missionsSource)
         {
             _missionsSource = missionsSource;
         }
 
-        private void LoadPendingMissions()
+        public IEnumerable<Mission> GetPendingMissions()
         {
-            _missionsSource.GetMissionsFromDirectory("FINAL");
+            return _missionsSource.GetMissionsFromDirectory(FinalDirectory);
+        }
+
+        public IEnumerable<Mission> GetLiveMissions()
+        {
+            return _missionsSource.GetMissionsFromDirectory(LiveDirectory);
         }
     }
 }

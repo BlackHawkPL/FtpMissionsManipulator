@@ -12,7 +12,8 @@ namespace FtpMissionsManipulator
         public MissionFilenameParser(IMissionVersionComparer missionVersionComparer, IMissionVersionFactory factory)
         {
             _versionFactory = factory;
-            _missionMissionVersionComparer = missionVersionComparer ?? throw new ArgumentNullException(nameof(missionVersionComparer));
+            _missionMissionVersionComparer = missionVersionComparer ??
+                                             throw new ArgumentNullException(nameof(missionVersionComparer));
         }
 
         public bool IsMissionNameFormatValid(string mission)
@@ -35,10 +36,10 @@ namespace FtpMissionsManipulator
         {
             try
             {
-                var versionStart = mission.Split('.')[0].LastIndexOf('_') + 1;
+                var versionStart = GetVersionStart(mission);
                 var versionEnd = Regex.Match(mission, @"(\.[^\.]*)\.pbo", RegexOptions.IgnoreCase).Index;
                 var version = mission.Substring(versionStart, versionEnd - versionStart);
-                if (!Regex.IsMatch(version, @"^[vV][\d\.]+$"))
+                if (!Regex.IsMatch(version, @"^[vV][\d\._]+$"))
                     throw new ArgumentException("Retrieved version didn't match regex");
                 return _versionFactory.GetMissionVersion(version, _missionMissionVersionComparer);
             }
@@ -48,12 +49,23 @@ namespace FtpMissionsManipulator
             }
         }
 
+        private static int GetVersionStart(string mission)
+        {
+            var versionStart = mission
+                                   .Split('.')
+                                   .First()
+                                   .ToLowerInvariant()
+                                   .LastIndexOf("_v", StringComparison.Ordinal) + 1;
+            return versionStart;
+        }
+
         public string GetName(string mission)
         {
             try
             {
                 var startIndex = mission.IndexOf('_') + 1;
-                return mission.Substring(startIndex, mission.LastIndexOf('_') - startIndex);
+                return mission.Substring(startIndex,
+                    GetVersionStart(mission) - 1 - startIndex);
             }
             catch (Exception e)
             {

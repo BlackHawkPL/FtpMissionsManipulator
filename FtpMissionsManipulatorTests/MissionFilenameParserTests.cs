@@ -33,6 +33,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("CO10_Test_v123.567.890.Sample_Long_Terrain_Name.pbo", "v123.567.890")]
         [TestCase("CO10_TEST_V3.WL_ROSCHE.PBO", "V3")]
         [TestCase("CO10_TEST_V3.WL_ROSCHE.Pbo", "V3")]
+        [TestCase("CO10_TEST_V1_2_3.WL_ROSCHE.Pbo", "V1_2_3")]
         public void GetVersion_ValidMissionNamesAndVersion_CorrectVersionReturned(string mission, string expected)
         {
             _sut.GetVersion(mission);
@@ -65,6 +66,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("tvt10_test_v1.terrain.pbo", ExpectedResult = MissionType.TVT)]
         [TestCase("Lol20_test_v1.terrain.pbo", ExpectedResult = MissionType.LOL)]
         [TestCase("TvT10_Test_v1.terrain.pbo", ExpectedResult = MissionType.TVT)]
+        [TestCase("TvT10_Test_v1_2_3.terrain.pbo", ExpectedResult = MissionType.TVT)]
         public MissionType GetMissionType_ValidMissionName_CorrectTypeReturned(string mission)
         {
             return _sut.GetMissionType(mission);
@@ -87,6 +89,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("TVT10_Test_v1.2.3.Terrain.pbo", ExpectedResult = "Terrain")]
         [TestCase("TVT10_Test_v1.2.3.Terrain.PBO", ExpectedResult = "Terrain")]
         [TestCase("TVT10_Test_v1.2.3.Terrain.Pbo", ExpectedResult = "Terrain")]
+        [TestCase("TVT10_Test_v1_2_3.Terrain.Pbo", ExpectedResult = "Terrain")]
         public string GetTerrain_ValidMissionName_CorrectTerrainReturned(string mission)
         {
             return _sut.GetTerrain(mission);
@@ -104,6 +107,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("TVT09_Test_v1.terrain.pbo", ExpectedResult = 9)]
         [TestCase("COTVT9_Test_v1.terrain.pbo", ExpectedResult = 9)]
         [TestCase("TVT10_10_Test_v1.terrain.pbo", ExpectedResult = 10)]
+        [TestCase("TVT10_10_Test_v1_2_3.terrain.pbo", ExpectedResult = 10)]
         public int GetSize_ValidMissionName_CorrectSizeReturned(string mission)
         {
             return _sut.GetSize(mission);
@@ -120,6 +124,7 @@ namespace FtpMissionsManipulatorTests
         [TestCase("CO10_TestName_v1.terrain.pbo", ExpectedResult = "TestName")]
         [TestCase("TVT10_Name_v1.terrain.pbo", ExpectedResult = "Name")]
         [TestCase("LOL10_Multi_Word_Name_v1.terrain.pbo", ExpectedResult = "Multi_Word_Name")]
+        [TestCase("LOL10_Multi_Word_Name_v1_2.terrain.pbo", ExpectedResult = "Multi_Word_Name")]
         [TestCase("COTVT20_Żółć_v1.terrain.pbo", ExpectedResult = "Żółć")]
         public string GetName_ValidMissionName_CorrectNameReturned(string mission)
         {
@@ -137,6 +142,8 @@ namespace FtpMissionsManipulatorTests
 
         [TestCase("CO10_Test_v1.terrain.pbo")]
         [TestCase("TVT10_A_Very_Long_Mission_Name_v1.2.3.50.terrain_name.pbo")]
+        [TestCase("TVT10_A_Very_Long_Mission_Name_v1_2_3_50.terrain_name.pbo")]
+        [TestCase("TVT10_Version_version_v1.terrain.pbo")]
         public void IsMissionNameFormatValid_ValidMissionNames_ReturnsTrue(string mission)
         {
             Assert.IsTrue(_sut.IsMissionNameFormatValid(mission));
