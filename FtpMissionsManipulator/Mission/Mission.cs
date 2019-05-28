@@ -1,6 +1,8 @@
-﻿namespace FtpMissionsManipulator
+﻿using System;
+
+namespace FtpMissionsManipulator
 {
-    public class Mission
+    public class Mission : IEquatable<Mission>
     {
         public Mission()
         {
@@ -23,5 +25,27 @@
         public int Size { get; }
         public MissionVersion Version { get; }
         public string Terrain { get; }
+
+        public bool Equals(Mission other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            if (string.IsNullOrEmpty(FullName) || string.IsNullOrEmpty(other.FullName))
+                return false;
+            return string.Equals(FullName, other.FullName);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Mission) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (FullName != null ? FullName.GetHashCode() : 0);
+        }
     }
 }

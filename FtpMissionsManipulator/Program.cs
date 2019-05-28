@@ -46,12 +46,17 @@ namespace FtpMissionsManipulator
                 .As<IFtpConnection>();
 
             var manipulator = builder.Build().Resolve<MissionManipulator>();
-            var liveMissions = manipulator.GetLiveMissions();
+            var liveMissions = manipulator.LiveMissions;
 
             foreach (var mission in liveMissions)
             {
                 Console.WriteLine(mission.FullName);
             }
+
+            Console.WriteLine("Missions to update are:");
+
+            foreach (var update in manipulator.GetUpdatedMissions())
+                Console.WriteLine($"Update {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
 
             Console.ReadKey();
 

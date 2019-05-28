@@ -41,5 +41,10 @@ namespace FtpMissionsManipulator
         {
             return _missionVersionComparer.IsFormatCorrect(this);
         }
+
+        public override string ToString()
+        {
+            return TextRepresentation;
+        }
     }
 }
