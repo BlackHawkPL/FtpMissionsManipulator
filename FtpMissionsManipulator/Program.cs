@@ -42,8 +42,11 @@ namespace FtpMissionsManipulator
                 .As<IMissionVersionComparer>();
             builder.RegisterType<MissionVersionFactory>()
                 .As<IMissionVersionFactory>();
-            builder.RegisterInstance(new CachedFtpConnection(address, username, password, new TimeProvider()))
+            builder.RegisterType<TimeProvider>()
+                .As<ITimeProvider>();
+            builder.RegisterInstance(new FtpConnection(address, username, password))
                 .As<IFtpConnection>();
+            builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
 
             var manipulator = builder.Build().Resolve<MissionManipulator>();
             var liveMissions = manipulator.LiveMissions;
@@ -61,6 +64,10 @@ namespace FtpMissionsManipulator
 
             foreach (var update in manipulator.GetUpdatedMissions())
                 Console.WriteLine($"Update {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
+
+            Console.WriteLine("\nDuplicates are:");
+            foreach (var duplicate in manipulator.GetDuplicateMissionsFromLive())
+                Console.WriteLine($"Duplicate {duplicate.FullName}");
 
             Console.ReadKey();
 

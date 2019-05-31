@@ -12,7 +12,7 @@ namespace FtpMissionsManipulator.MissionSource
 
         public FtpConnection(string address, string userName, string password)
         {
-            _address = address;
+            _address = address; //todo handle incorrect credentials
             _userName = userName;
             _password = password;
         }

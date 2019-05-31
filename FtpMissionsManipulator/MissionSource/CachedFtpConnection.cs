@@ -3,19 +3,19 @@ using System.Collections.Generic;
 
 namespace FtpMissionsManipulator.MissionSource
 {
-    class CachedFtpConnection : IFtpConnection
+    public class CachedFtpConnection : IFtpConnection
     {
         private readonly ITimeProvider _timeProvider;
         private readonly int _invalidateAfter;
-        private readonly FtpConnection _connection;
+        private readonly IFtpConnection _connection;
         private readonly Dictionary<string, string> _cache;
         private DateTime _lastAccessTime;
 
-        public CachedFtpConnection(string address, string userName, string password, ITimeProvider timeProvider, int invalidateAfter = 5)
+        public CachedFtpConnection(IFtpConnection inner, ITimeProvider timeProvider, int invalidateAfter = 5)
         {
             _timeProvider = timeProvider;
             _invalidateAfter = invalidateAfter;
-            _connection = new FtpConnection(address, userName, password);
+            _connection = inner;
             _cache = new Dictionary<string, string>();
             _lastAccessTime = _timeProvider.GetCurrentTime();
         }

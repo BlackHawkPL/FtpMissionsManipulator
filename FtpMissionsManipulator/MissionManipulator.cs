@@ -38,5 +38,11 @@ namespace FtpMissionsManipulator
 
         public IEnumerable<string> GetMissionsWithIncorrectNamesInLive() =>
             _missionsSource.GetFaultyFiles(LiveDirectory);
+
+        public IEnumerable<Mission> GetDuplicateMissionsFromLive() =>
+            LiveMissions
+                .GroupBy(m => (m.Name, m.Type))
+                .Where(g => g.Count() > 1)
+                .SelectMany(g => g);
     }
 }
