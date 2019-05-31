@@ -168,5 +168,13 @@ namespace FtpMissionsManipulatorTests
 
             _comparerMock.Verify(c => c.IsFormatCorrect(_sut), Times.Once);
         }
+
+        [Test]
+        public void ToString_VersionStringSet_VersionStringReturned()
+        {
+            var result = _sut.ToString();
+
+            Assert.AreEqual(_sut.TextRepresentation, result);
+        }
     }
 }

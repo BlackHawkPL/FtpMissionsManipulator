@@ -17,29 +17,63 @@ namespace FtpMissionsManipulator.MissionSource
 
         public IEnumerable<Mission> GetMissionsFromDirectory(string directory)
         {
-            var result = _ftpConnection.GetStringResponse(directory);
+            var response = _ftpConnection.GetStringResponse(directory);
 
-            return result
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries)
-                .Select(missionName =>
-                {
-                    missionName = missionName
-                        .Trim()
-                        .Split('/')
-                        .Last();
-                    try
-                    {
-                        var mission = _missionFactory.GetMission(missionName);
-                        return mission;
-                    }
-                    catch (ArgumentException e)
-                    {
-                        Console.WriteLine($"{missionName}: {e.Message}");
-                        return null;
-                    }
-                })
+            var missionStrings = response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var missions = CreateMissions(missionStrings);
+
+            return missions
                 .Where(m => m != null)
                 .ToList();
+        }
+
+        private IEnumerable<Mission> CreateMissions(IEnumerable<string> missionNames)
+        {
+            foreach (var missionName in missionNames)
+            {
+                var name = missionName.Trim()
+                    .Split('/')
+                    .Last();
+
+                Mission mission = null;
+                try
+                {
+                    mission = _missionFactory.GetMission(name);
+                }
+                catch (ArgumentException)
+                {
+                }
+
+                yield return mission;
+            }
+        }
+
+        public IEnumerable<string> GetFaultyFiles(string directory)
+        {
+            var response = _ftpConnection.GetStringResponse(directory);
+
+            var missionStrings = response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var result = new List<string>();
+            foreach (var missionName in missionStrings)
+            {
+                var name = missionName.Trim()
+                    .Split('/')
+                    .Last();
+
+                try
+                {
+                    _missionFactory.GetMission(name);
+                }
+                catch (ArgumentException)
+                {
+                    result.Add(name);
+                }
+            }
+
+            return result;
         }
     }
 }

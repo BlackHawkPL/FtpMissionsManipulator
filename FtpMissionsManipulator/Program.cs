@@ -42,7 +42,7 @@ namespace FtpMissionsManipulator
                 .As<IMissionVersionComparer>();
             builder.RegisterType<MissionVersionFactory>()
                 .As<IMissionVersionFactory>();
-            builder.RegisterInstance(new FtpConnection(address, username, password))
+            builder.RegisterInstance(new CachedFtpConnection(address, username, password, new TimeProvider()))
                 .As<IFtpConnection>();
 
             var manipulator = builder.Build().Resolve<MissionManipulator>();
@@ -53,7 +53,11 @@ namespace FtpMissionsManipulator
                 Console.WriteLine(mission.FullName);
             }
 
-            Console.WriteLine("Missions to update are:");
+            Console.WriteLine("\nMissions with faulty names:");
+            foreach (var mission in manipulator.GetMissionsWithIncorrectNamesInLive())
+                Console.WriteLine(mission);
+
+            Console.WriteLine("\nMissions to update are:");
 
             foreach (var update in manipulator.GetUpdatedMissions())
                 Console.WriteLine($"Update {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");

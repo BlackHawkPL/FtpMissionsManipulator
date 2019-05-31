@@ -14,7 +14,7 @@ namespace FtpMissionsManipulator
         public Mission GetMission(string missionName)
         {
             if (!_filenameParser.IsMissionNameFormatValid(missionName))
-                throw new ArgumentException("Provided mission had incorrect format");
+                throw new ArgumentException(/*"Provided mission had incorrect format"*/);
 
             return new Mission(missionName,
                 _filenameParser.GetMissionType(missionName), _filenameParser.GetSize(missionName),

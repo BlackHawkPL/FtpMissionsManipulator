@@ -17,26 +17,53 @@ namespace FtpMissionsManipulatorTests.MissionSource
         private string _missionName2;
         private Mission _mission1;
         private Mission _mission2;
+        private string _directoryPrefix;
+        private string _brokenMissionName1;
+        private string _brokenMissionName2;
 
         [SetUp]
         public void Setup()
         {
             _missionFactoryMock = new Mock<IMissionFactory>();
             _ftpConnectionMock = new Mock<IFtpConnection>();
+            _directoryPrefix = "_Live/";
             _missionName1 = "mission1";
             _missionName2 = "mission2";
+            _brokenMissionName1 = "brokenMissionName1";
+            _brokenMissionName2 = "brokenMissionName2";
             _mission1 = new Mock<Mission>().Object;
             _mission2 = new Mock<Mission>().Object;
+            SetupConnection();
+            SetupFactory();
+            _sut = new FtpMissionsSource(_missionFactoryMock.Object, _ftpConnectionMock.Object);
+        }
+
+        private void SetupConnection()
+        {
+            string GetFullLine(string missionName)
+            {
+                return _directoryPrefix + missionName + "\r\n";
+            }
+
             _ftpConnectionMock
-                .Setup(m => m.GetStringResponse(It.IsAny<string>()))
-                .Returns(_missionName1 + '\n' + _missionName2);
+                .Setup(m => m.GetStringResponse("test"))
+                .Returns(GetFullLine(_missionName1) +
+                         GetFullLine(_missionName2) +
+                         GetFullLine(_brokenMissionName1) +
+                         GetFullLine(_brokenMissionName2));
+        }
+
+        private void SetupFactory()
+        {
             _missionFactoryMock
                 .Setup(m => m.GetMission(_missionName1))
                 .Returns(_mission1);
             _missionFactoryMock
                 .Setup(m => m.GetMission(_missionName2))
                 .Returns(_mission2);
-            _sut = new FtpMissionsSource(_missionFactoryMock.Object, _ftpConnectionMock.Object);
+            _missionFactoryMock
+                .Setup(m => m.GetMission(It.IsIn(_brokenMissionName1, _brokenMissionName2)))
+                .Throws<ArgumentException>();
         }
 
         [Test]
@@ -57,8 +84,6 @@ namespace FtpMissionsManipulatorTests.MissionSource
                 .Verify(m => m.GetMission(_missionName1), Times.Once);
             _missionFactoryMock
                 .Verify(m => m.GetMission(_missionName2), Times.Once);
-            _missionFactoryMock
-                .VerifyNoOtherCalls();
         }
 
         [Test]
@@ -67,6 +92,26 @@ namespace FtpMissionsManipulatorTests.MissionSource
             var result = _sut.GetMissionsFromDirectory("test");
 
             CollectionAssert.AreEquivalent(new [] {_mission1, _mission2}, result);
+        }
+
+        [Test]
+        public void GetMissionsFromDirectory_MissionFactoryCantCreateMission_RemainingMissionsReturned()
+        {
+            _missionFactoryMock
+                .Setup(m => m.GetMission(_missionName1))
+                .Throws<ArgumentException>();
+
+            var result = _sut.GetMissionsFromDirectory("test");
+
+            CollectionAssert.AreEquivalent(new [] {_mission2}, result);
+        }
+
+        [Test]
+        public void GetFaultyFiles_FaultyFilesAvailable_CorrectlyReturned()
+        {
+            var result = _sut.GetFaultyFiles("test");
+
+            CollectionAssert.AreEquivalent(new [] {_brokenMissionName1, _brokenMissionName2}, result);
         }
     }
 }

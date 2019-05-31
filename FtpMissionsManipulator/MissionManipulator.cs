@@ -10,9 +10,11 @@ namespace FtpMissionsManipulator
         private readonly IMissionsSource _missionsSource;
         public const string FinalDirectory = "_FINAL";
         public const string LiveDirectory = "SRV1";
+        public const string BrokenDirectory = "BROKEN";
 
         private IEnumerable<Mission> _liveMissions;
         private IEnumerable<Mission> _pendingMissions;
+        private IEnumerable<Mission> _brokenMissions;
 
         public MissionManipulator(IMissionsSource missionsSource)
         {
@@ -20,15 +22,21 @@ namespace FtpMissionsManipulator
         }
 
         public IEnumerable<Mission> PendingMissions =>
-            _pendingMissions ?? (_pendingMissions = _missionsSource.GetMissionsFromDirectory(FinalDirectory));
+            _pendingMissions = _missionsSource.GetMissionsFromDirectory(FinalDirectory);
 
         public IEnumerable<Mission> LiveMissions =>
-            _liveMissions ?? (_liveMissions = _missionsSource.GetMissionsFromDirectory(LiveDirectory));
+            _liveMissions = _missionsSource.GetMissionsFromDirectory(LiveDirectory);
+
+        public IEnumerable<Mission> BrokenMissions =>
+            _brokenMissions = _missionsSource.GetMissionsFromDirectory(BrokenDirectory);
 
         public IEnumerable<MissionUpdate> GetUpdatedMissions() =>
             LiveMissions.Join(PendingMissions,
                 m => m.Name,
                 m => m.Name,
                 (m1, m2) => new MissionUpdate(m1, m2));
+
+        public IEnumerable<string> GetMissionsWithIncorrectNamesInLive() =>
+            _missionsSource.GetFaultyFiles(LiveDirectory);
     }
 }
