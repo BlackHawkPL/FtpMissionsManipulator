@@ -110,7 +110,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetLiveMissions_MissionSourceProvidesMissions_CorrectDirectoryUsed()
         {
-            var result = _sut.LiveMissions;
+            var result = _sut.GetLiveMissionsAsync().Result;
 
             _missionSourceMock.Verify(m => m.GetMissionsFromDirectory(_liveDirectory), Times.Once);
         }
@@ -118,7 +118,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetLiveMissions_MissionSourceProvidesMissions_ReturnedMissionsRetrievedFromSource()
         {
-            var result = _sut.LiveMissions;
+            var result = _sut.GetLiveMissionsAsync().Result;
 
             CollectionAssert.AreEquivalent(_liveMissions, result);
         }
@@ -126,7 +126,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetPendingMissions_MissionSourceProvidesMissions_CorrectDirectoryUsed()
         {
-            var unused = _sut.PendingMissions;
+            var unused = _sut.GetPendingMissionsAsync().Result;
 
             _missionSourceMock.Verify(m => m.GetMissionsFromDirectory(_pendingDirectory), Times.Once);
         }
@@ -134,7 +134,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetPendingMissions_MissionSourceProvidesMissions_ReturnedMissionsRetrievedFromSource()
         {
-            var result = _sut.PendingMissions;
+            var result = _sut.GetPendingMissionsAsync().Result;
 
             CollectionAssert.AreEquivalent(_pendingMissions, result);
         }
@@ -142,7 +142,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetUpdatedMissions_OneMissionHasUpdatePending_OneMissionUpdateCorrectlyCreated()
         {
-            var result = _sut.GetUpdatedMissions().ToArray();
+            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
             Assert.AreEqual(1, result.Length);
             Assert.AreEqual(_updatedMission, result.First().NewMission);
@@ -156,7 +156,7 @@ namespace FtpMissionsManipulatorTests
                 .Setup(m => m.GetMissionsFromDirectory(_pendingDirectory))
                 .Returns(Enumerable.Empty<Mission>());
 
-            var result = _sut.GetUpdatedMissions().ToArray();
+            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
             Assert.That(result.IsNullOrEmpty());
         }
@@ -171,7 +171,7 @@ namespace FtpMissionsManipulatorTests
                     new Mission(),
                 });
 
-            var result = _sut.GetUpdatedMissions().ToArray();
+            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
             Assert.That(result.IsNullOrEmpty());
         }
@@ -194,7 +194,7 @@ namespace FtpMissionsManipulatorTests
                     new Mission(), 
                 });
 
-            var result = _sut.GetUpdatedMissions().ToArray();
+            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
             CollectionAssert.AreEquivalent(expected, result);
         }
@@ -202,7 +202,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetMissionsWithIncorrectNamesFromLive_TwoMissionsWithIncorrectNames_CorrectlyReturned()
         {
-            var result = _sut.GetMissionsWithIncorrectNamesInLive();
+            var result = _sut.GetMissionsWithIncorrectNamesInLiveAsync().Result;
 
             CollectionAssert.AreEquivalent(_missionsWithIncorrectNames, result);
         }
@@ -210,7 +210,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetBrokenMissions_TwoBrokenMissions_CorrectlyReturned()
         {
-            var result = _sut.BrokenMissions;
+            var result = _sut.GetBrokenMissionsAsync().Result;
 
             CollectionAssert.AreEquivalent(_brokenMissions, result);
         }

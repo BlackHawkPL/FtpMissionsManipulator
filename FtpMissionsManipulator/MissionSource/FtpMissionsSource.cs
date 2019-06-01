@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace FtpMissionsManipulator.MissionSource
 {
@@ -52,6 +53,50 @@ namespace FtpMissionsManipulator.MissionSource
         public IEnumerable<string> GetFaultyFiles(string directory)
         {
             var response = _ftpConnection.GetStringResponse(directory);
+
+            var missionStrings = response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var result = new List<string>();
+            foreach (var missionName in missionStrings)
+            {
+                var name = missionName.Trim()
+                    .Split('/')
+                    .Last();
+
+                try
+                {
+                    _missionFactory.GetMission(name);
+                }
+                catch (ArgumentException)
+                {
+                    result.Add(name);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<Mission>> GetMissionsFromDirectoryAsync(string directory)
+        {
+            var response = await _ftpConnection
+                .GetStringResponseAsync(directory)
+                .ConfigureAwait(false);
+
+            var missionStrings = response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            var missions = CreateMissions(missionStrings);
+
+            return missions
+                .Where(m => m != null)
+                .ToList();
+        }
+
+        public async Task<IEnumerable<string>> GetFaultyFilesAsync(string directory)
+        {
+            var response = await _ftpConnection
+                .GetStringResponseAsync(directory)
+                .ConfigureAwait(false);
 
             var missionStrings = response
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries);

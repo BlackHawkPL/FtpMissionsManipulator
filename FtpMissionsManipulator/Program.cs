@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using FtpMissionsManipulator.MissionSource;
 using System.Configuration;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Tasks.Sources;
 using Autofac;
 
 namespace FtpMissionsManipulator
@@ -11,7 +16,7 @@ namespace FtpMissionsManipulator
     {
         private static string _readLine;
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var address = ConfigurationManager.AppSettings["address"];
             var username = ConfigurationManager.AppSettings["username"];
@@ -23,9 +28,11 @@ namespace FtpMissionsManipulator
 
             if (char.ToLower(answer.KeyChar) == 'y' || address == null || username == null || password == null)
             {
-                address = SetSetting("address");
-                username = SetSetting("username");
-                password = SetSetting("password");
+                var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                config.AppSettings.Settings.Clear();
+                address = SetSetting("address", config);
+                username = SetSetting("username", config);
+                password = SetSetting("password", config);
             }
 
 
@@ -47,38 +54,58 @@ namespace FtpMissionsManipulator
             builder.RegisterInstance(new FtpConnection(address, username, password))
                 .As<IFtpConnection>();
             builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
+            builder.RegisterDecorator<ConcurrentFtpConnection, IFtpConnection>();
 
             var manipulator = builder.Build().Resolve<MissionManipulator>();
-            var liveMissions = manipulator.LiveMissions;
 
-            foreach (var mission in liveMissions)
+            var tasks = new[]
             {
-                Console.WriteLine(mission.FullName);
-            }
-
-            Console.WriteLine("\nMissions with faulty names:");
-            foreach (var mission in manipulator.GetMissionsWithIncorrectNamesInLive())
-                Console.WriteLine(mission);
-
-            Console.WriteLine("\nMissions to update are:");
-
-            foreach (var update in manipulator.GetUpdatedMissions())
-                Console.WriteLine($"Update {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
-
-            Console.WriteLine("\nDuplicates are:");
-            foreach (var duplicate in manipulator.GetDuplicateMissionsFromLive())
-                Console.WriteLine($"Duplicate {duplicate.FullName}");
+                PrintLiveAsync(manipulator),
+                PrintFaultyAsync(manipulator),
+                PrintUpdatedAsync(manipulator),
+                PrintDuplicatesAsync(manipulator)
+            };
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             Console.ReadKey();
 
-            //var manipulator = new MissionManipulator(new FtpMissionsSource(
-            //    new MissionFactory(new MissionFilenameParser(new MissionVersionComparer(),
-            //        new MissionVersionFactory())), new FtpConnection()));
         }
 
-        private static string SetSetting(string name)
+        private static async Task PrintDuplicatesAsync(MissionManipulator manipulator)
         {
-            var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var missions = await manipulator.GetDuplicateMissionsFromLiveAsync().ConfigureAwait(false);
+            Console.WriteLine("\nDuplicates are:");
+            foreach (var duplicate in missions)
+                Console.WriteLine($"D {duplicate.FullName}");
+        }
+
+        private static async Task PrintUpdatedAsync(MissionManipulator manipulator)
+        {
+            var missionUpdates = await manipulator.GetUpdatedMissionsAsync().ConfigureAwait(false);
+            Console.WriteLine("\nMissions to update are:");
+            foreach (var update in missionUpdates)
+                Console.WriteLine(
+                    $"U {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
+        }
+
+        private static async Task PrintFaultyAsync(MissionManipulator manipulator)
+        {
+            var objects = await manipulator.GetMissionsWithIncorrectNamesInLiveAsync().ConfigureAwait(false);
+            Console.WriteLine("\nMissions with faulty names:");
+            foreach (var mission in objects)
+                Console.WriteLine("F " + mission);
+        }
+
+        private static async Task PrintLiveAsync(MissionManipulator manipulator)
+        {
+            var missions = await manipulator.GetLiveMissionsAsync().ConfigureAwait(false);
+            Console.WriteLine("\nLive missions:");
+            foreach (var mission in missions)
+                Console.WriteLine("L " + mission.FullName);
+        }
+
+        private static string SetSetting(string name, Configuration configFile)
+        {
             var settings = configFile.AppSettings.Settings;
             Console.WriteLine($"Enter {name}: ");
             _readLine = Console.ReadLine();

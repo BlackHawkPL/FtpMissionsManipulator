@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FtpMissionsManipulator.MissionSource
 {
@@ -41,6 +43,27 @@ namespace FtpMissionsManipulator.MissionSource
             reader.Close();
             return result;
         
+        }
+
+        public async Task<string> GetStringResponseAsync(string directory)
+        {
+            if (!(WebRequest.Create(GetDirectoryAtAddress(directory)) is FtpWebRequest request)) //todo handle errors
+                throw new Exception("webrequest was null");
+
+            request.Method = WebRequestMethods.Ftp.ListDirectory;
+            request.Credentials = new NetworkCredential(_userName, _password);
+
+            if (!(request.GetResponse() is FtpWebResponse response))
+                throw new Exception("response was null");
+
+            var responseStream = response.GetResponseStream();
+            var reader = new StreamReader(responseStream ?? throw new InvalidOperationException());
+            var result = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+            response.Close();
+            reader.Close();
+            return result;
+
         }
     }
 }
