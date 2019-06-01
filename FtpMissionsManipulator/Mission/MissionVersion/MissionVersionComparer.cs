@@ -5,21 +5,6 @@ namespace FtpMissionsManipulator
 {
     public class MissionVersionComparer : IMissionVersionComparer
     {
-        private int[] GetNumberRepresentation(string originalRepresentation)
-        {
-            var versionText = originalRepresentation.TrimStart('v', 'V');
-            var numbers = versionText.Split(new [] {'.', '_'});
-            return numbers.Select(n =>
-            {
-                var hasParsed = int.TryParse(n, out var parsed);
-                if (!hasParsed)
-                    throw new ArgumentException(
-                        "Provided version string is invalid (isn't exclusively numbers separated by periods)");
-                return parsed;
-
-            }).ToArray();
-        }
-
         public int Compare(MissionVersion x, MissionVersion y)
         {
             if (x == null) throw new ArgumentNullException(nameof(x));
@@ -50,6 +35,20 @@ namespace FtpMissionsManipulator
             {
                 return false;
             }
+        }
+
+        private int[] GetNumberRepresentation(string originalRepresentation)
+        {
+            var versionText = originalRepresentation.TrimStart('v', 'V');
+            var numbers = versionText.Split('.', '_');
+            return numbers.Select(n =>
+            {
+                var hasParsed = int.TryParse(n, out var parsed);
+                if (!hasParsed)
+                    throw new ArgumentException(
+                        "Provided version string is invalid (isn't exclusively numbers separated by periods)");
+                return parsed;
+            }).ToArray();
         }
     }
 }

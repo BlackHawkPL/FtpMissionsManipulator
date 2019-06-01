@@ -8,12 +8,6 @@ namespace FtpMissionsManipulatorTests
     [TestFixture]
     public class MissionFilenameParserTests
     {
-        private IMissionVersionFactory _versionFactory;
-        private IMissionVersionComparer _missionVersionComparer;
-        private MissionFilenameParser _sut;
-        private Mock<IMissionVersionFactory> _versionFactoryMock;
-        private Mock<IMissionVersionComparer> _versionComparerMock;
-
         [SetUp]
         public void Setup()
         {
@@ -23,6 +17,12 @@ namespace FtpMissionsManipulatorTests
             _missionVersionComparer = _versionComparerMock.Object;
             _sut = new MissionFilenameParser(_missionVersionComparer, _versionFactory);
         }
+
+        private IMissionVersionFactory _versionFactory;
+        private IMissionVersionComparer _missionVersionComparer;
+        private MissionFilenameParser _sut;
+        private Mock<IMissionVersionFactory> _versionFactoryMock;
+        private Mock<IMissionVersionComparer> _versionComparerMock;
 
 
         [TestCase("CO10_Test_v3.WL_Rosche.pbo", "v3")]

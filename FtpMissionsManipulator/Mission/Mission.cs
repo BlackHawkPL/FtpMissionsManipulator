@@ -6,7 +6,6 @@ namespace FtpMissionsManipulator
     {
         public Mission()
         {
-
         }
 
         public Mission(string fullName, MissionType type, int size, string name, MissionVersion version, string terrain)
@@ -39,13 +38,13 @@ namespace FtpMissionsManipulator
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((Mission) obj);
         }
 
         public override int GetHashCode()
         {
-            return (FullName != null ? FullName.GetHashCode() : 0);
+            return FullName != null ? FullName.GetHashCode() : 0;
         }
     }
 }

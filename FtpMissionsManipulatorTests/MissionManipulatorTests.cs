@@ -124,9 +124,27 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
+        public void GetDuplicateMissionsFromLiveAsync_DuplicateMissionsInLive_CorrectlyReturned()
+        {
+            _missionSourceMock
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_liveDirectory))
+                .Returns(Task.FromResult(_liveMissionsWithDuplicates));
+            var expected = new[]
+            {
+                _oldMission,
+                _updatedMission,
+                _anotherUpdatedMission
+            };
+
+            var result = _sut.GetDuplicateMissionsFromLiveAsync().Result.ToArray();
+
+            CollectionAssert.AreEquivalent(expected, result);
+        }
+
+        [Test]
         public void GetLiveMissions_MissionSourceProvidesMissions_CorrectDirectoryUsed()
         {
-            var result = _sut.GetLiveMissionsAsync().Result;
+            var unused = _sut.GetLiveMissionsAsync().Result;
 
             _missionSourceMock.Verify(m => m.GetMissionsFromDirectoryAsync(_liveDirectory), Times.Once);
         }
@@ -221,24 +239,6 @@ namespace FtpMissionsManipulatorTests
             Assert.AreEqual(1, result.Length);
             Assert.AreEqual(_updatedMission, result.First().NewMission);
             Assert.AreEqual(_oldMission, result.First().OldMission);
-        }
-
-        [Test]
-        public void GetDuplicateMissionsFromLiveAsync_DuplicateMissionsInLive_CorrectlyReturned()
-        {
-            _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectoryAsync(_liveDirectory))
-                .Returns(Task.FromResult(_liveMissionsWithDuplicates));
-            var expected = new[]
-            {
-                _oldMission,
-                _updatedMission,
-                _anotherUpdatedMission,
-            };
-
-            var result = _sut.GetDuplicateMissionsFromLiveAsync().Result.ToArray();
-
-            CollectionAssert.AreEquivalent(expected, result);
         }
     }
 }

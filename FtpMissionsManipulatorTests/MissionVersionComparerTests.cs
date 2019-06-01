@@ -1,22 +1,21 @@
 ﻿using System;
 using FtpMissionsManipulator;
 using NUnit.Framework;
-// ReSharper disable ReturnValueOfPureMethodIsNotUsed
 
 namespace FtpMissionsManipulatorTests
 {
     [TestFixture]
     public class MissionVersionComparerTests
     {
-        private MissionVersionComparer _sut;
-        private IMissionVersionFactory _versionFactory;
-
         [SetUp]
         public void Setup()
         {
             _sut = new MissionVersionComparer();
             _versionFactory = new MissionVersionFactory();
         }
+
+        private MissionVersionComparer _sut;
+        private IMissionVersionFactory _versionFactory;
 
         private MissionVersion GetMissionVersion(string version)
         {
@@ -69,7 +68,10 @@ namespace FtpMissionsManipulatorTests
             var a = GetMissionVersion("v1.2a");
             var b = GetMissionVersion("v1.2b");
 
-            Assert.Throws<ArgumentException>(() => _sut.Compare(a, b));
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var unused = _sut.Compare(a, b);
+            });
         }
 
         [Test]
@@ -77,7 +79,10 @@ namespace FtpMissionsManipulatorTests
         {
             var a = GetMissionVersion("v1.2a");
 
-            Assert.Throws<ArgumentNullException>(() => _sut.Compare(null, a));
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var unused = _sut.Compare(null, a);
+            });
         }
 
         [Test]
@@ -85,7 +90,10 @@ namespace FtpMissionsManipulatorTests
         {
             var a = GetMissionVersion("v1.2a");
 
-            Assert.Throws<ArgumentNullException>(() => _sut.Compare(a, null));
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var unused = _sut.Compare(a, null);
+            });
         }
 
         [Test]

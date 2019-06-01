@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using FtpMissionsManipulator;
-using Moq;
 using NUnit.Framework;
 
 namespace FtpMissionsManipulatorTests
@@ -10,6 +7,19 @@ namespace FtpMissionsManipulatorTests
     [TestFixture]
     public class MissionUpdateTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            _mission = new Mission("CO42_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test", null, "Chernarus");
+            _sameMission = new Mission("CO42_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test", null, "Chernarus");
+            _differentMission = new Mission("CO42_Different_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test",
+                null, "Chernarus");
+
+            _update = new MissionUpdate(_mission, _differentMission);
+            _sameUpdate = new MissionUpdate(_mission, _differentMission);
+            _differentUpdate = new MissionUpdate(_sameMission, _mission);
+        }
+
         private Mission _differentMission;
         private Mission _mission;
         private Mission _sameMission;
@@ -17,22 +27,59 @@ namespace FtpMissionsManipulatorTests
         private MissionUpdate _differentUpdate;
         private MissionUpdate _sameUpdate;
 
-        [SetUp]
-        public void Setup()
+        [Test]
+        public void Equals_ComparingDifferentUpdateCastAsObject_ReturnsFalse()
         {
-            _mission = new Mission("CO42_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test", null, "Chernarus");
-            _sameMission = new Mission("CO42_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test", null, "Chernarus");
-            _differentMission = new Mission("CO42_Different_Test_v1.2.Chernarus.pbo", MissionType.Coop, 42, "Test", null, "Chernarus");
+            var result = _update.Equals((object) _differentUpdate);
 
-            _update = new MissionUpdate(_mission, _differentMission);
-            _sameUpdate = new MissionUpdate(_mission, _differentMission);
-            _differentUpdate = new MissionUpdate(_sameMission, _mission);
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void Equals_ComparingToDifferentType_ReturnsFalse()
+        {
+            // ReSharper disable once SuspiciousTypeConversion.Global
+            var result = _update.Equals(new StringBuilder());
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void Equals_ComparingToEqualOtherUpdateCastAsObject_ReturnsTrue()
+        {
+            var result = _update.Equals((object) _sameUpdate);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Equals_ComparingToItself_ReturnsTrue()
+        {
+            var result = _update.Equals((object) _update);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void Equals_ComparingToNullCastAsObject_ReturnsFalse()
+        {
+            var result = _update.Equals((object) null);
+
+            Assert.IsFalse(result);
         }
 
         [Test]
         public void Equals_DifferentUpdates_ReturnsFalse()
         {
             var result = _update.Equals(_differentUpdate);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void Equals_OtherUpdateIsNull_ReturnsFalse()
+        {
+            var result = _update.Equals(null);
 
             Assert.IsFalse(result);
         }
@@ -48,59 +95,9 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void Equals_updatesWithSameName_ReturnsTrue()
         {
-
             var result = _update.Equals(_sameUpdate);
 
             Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void Equals_OtherUpdateIsNull_ReturnsFalse()
-        {
-            var result = _update.Equals(null);
-
-            Assert.IsFalse(result);
-        }
-
-        [Test]
-        public void Equals_ComparingToEqualOtherUpdateCastAsObject_ReturnsTrue()
-        {
-            var result = _update.Equals((object)_sameUpdate);
-
-            Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void Equals_ComparingDifferentUpdateCastAsObject_ReturnsFalse()
-        {
-            var result = _update.Equals((object)_differentUpdate);
-
-            Assert.IsFalse(result);
-        }
-
-        [Test]
-        public void Equals_ComparingToNullCastAsObject_ReturnsFalse()
-        {
-            var result = _update.Equals((object)null);
-
-            Assert.IsFalse(result);
-        }
-
-        [Test]
-        public void Equals_ComparingToItself_ReturnsTrue()
-        {
-            var result = _update.Equals((object)_update);
-
-            Assert.IsTrue(result);
-        }
-
-        [Test]
-        public void Equals_ComparingToDifferentType_ReturnsFalse()
-        {
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            var result = _update.Equals(new StringBuilder());
-
-            Assert.IsFalse(result);
         }
 
         [Test]

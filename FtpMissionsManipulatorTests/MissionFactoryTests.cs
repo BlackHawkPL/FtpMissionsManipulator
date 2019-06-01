@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using FtpMissionsManipulator;
 using Moq;
 using NUnit.Framework;
@@ -55,6 +54,22 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
+        public void GetMission_ValidInput_FullMissionNameSet()
+        {
+            var result = _sut.GetMission(_validMissionName);
+
+            Assert.AreEqual(_validMissionName, result.FullName);
+        }
+
+        [Test]
+        public void GetMission_ValidInput_NameFromParserSet()
+        {
+            var result = _sut.GetMission(_validMissionName);
+
+            Assert.AreEqual(_mockName, result.Name);
+        }
+
+        [Test]
         public void GetMission_ValidInput_ParserCalled()
         {
             _sut.GetMission(_validMissionName);
@@ -71,22 +86,6 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
-        public void GetMission_ValidInput_TypeFromParserSet()
-        {
-            var result = _sut.GetMission(_validMissionName);
-
-            Assert.AreEqual(_mockType, result.Type);
-        }
-
-        [Test]
-        public void GetMission_ValidInput_NameFromParserSet()
-        {
-            var result = _sut.GetMission(_validMissionName);
-
-            Assert.AreEqual(_mockName, result.Name);
-        }
-
-        [Test]
         public void GetMission_ValidInput_TerrainFromParserSet()
         {
             var result = _sut.GetMission(_validMissionName);
@@ -95,19 +94,19 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
+        public void GetMission_ValidInput_TypeFromParserSet()
+        {
+            var result = _sut.GetMission(_validMissionName);
+
+            Assert.AreEqual(_mockType, result.Type);
+        }
+
+        [Test]
         public void GetMission_ValidInput_VersionFromParserSet()
         {
             var result = _sut.GetMission(_validMissionName);
 
             Assert.AreEqual(_mockVersion, result.Version);
-        }
-
-        [Test]
-        public void GetMission_ValidInput_FullMissionNameSet()
-        {
-            var result = _sut.GetMission(_validMissionName);
-
-            Assert.AreEqual(_validMissionName, result.FullName);
         }
     }
 }

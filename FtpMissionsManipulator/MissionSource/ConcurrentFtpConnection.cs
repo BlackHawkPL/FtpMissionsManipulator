@@ -5,18 +5,13 @@ namespace FtpMissionsManipulator.MissionSource
 {
     public class ConcurrentFtpConnection : IFtpConnection
     {
-        private readonly Dictionary<string, Task<string>> _pending;
         private readonly IFtpConnection _inner;
+        private readonly Dictionary<string, Task<string>> _pending;
 
         public ConcurrentFtpConnection(IFtpConnection inner)
         {
             _pending = new Dictionary<string, Task<string>>();
             _inner = inner;
-        }
-
-        public string GetStringResponse(string directory)
-        {
-            return GetDirectoryListingAsync(directory).Result;
         }
 
         public Task<string> GetDirectoryListingAsync(string directory)

@@ -1,20 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using FtpMissionsManipulator;
 using FtpMissionsManipulator.MissionSource;
 using Moq;
 using NUnit.Framework;
 
-namespace FtpMissionsManipulatorTests.MissionSource
+namespace FtpMissionsManipulatorTests
 {
     [TestFixture]
     public class CachedFtpConnectionTests
     {
-        private CachedFtpConnection _sut;
-        private Mock<IFtpConnection> _connectionMock;
-        private Mock<ITimeProvider> _timeMock;
-        private DateTime _time;
-
         [SetUp]
         public void Setup()
         {
@@ -23,26 +16,19 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _timeMock
                 .Setup(m => m.GetCurrentTime())
                 .Returns(() => _time);
-                
+
             _connectionMock = new Mock<IFtpConnection>();
             _sut = new CachedFtpConnection(_connectionMock.Object, _timeMock.Object, 2);
         }
 
+        private CachedFtpConnection _sut;
+        private Mock<IFtpConnection> _connectionMock;
+        private Mock<ITimeProvider> _timeMock;
+        private DateTime _time;
+
         [Test]
         public void GetStringResponse_InnerObjectCorrectlySet_InnerConnectionInvoked()
         {
-            _sut.GetStringResponse("test");
-
-            _connectionMock
-                .Verify(m => m.GetDirectoryListingAsync("test"), Times.Once);
-        }
-
-        [Test]
-        public void GetStringResponse_SecondRequestWithinCacheTime_InnerNotInvoked()
-        {
-            _sut.GetStringResponse("test");
-            _time += TimeSpan.FromSeconds(1);
-
             _sut.GetStringResponse("test");
 
             _connectionMock
@@ -59,6 +45,18 @@ namespace FtpMissionsManipulatorTests.MissionSource
 
             _connectionMock
                 .Verify(m => m.GetDirectoryListingAsync("test"), Times.Exactly(2));
+        }
+
+        [Test]
+        public void GetStringResponse_SecondRequestWithinCacheTime_InnerNotInvoked()
+        {
+            _sut.GetStringResponse("test");
+            _time += TimeSpan.FromSeconds(1);
+
+            _sut.GetStringResponse("test");
+
+            _connectionMock
+                .Verify(m => m.GetDirectoryListingAsync("test"), Times.Once);
         }
     }
 }

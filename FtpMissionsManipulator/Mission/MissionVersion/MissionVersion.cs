@@ -5,13 +5,14 @@ namespace FtpMissionsManipulator
     public class MissionVersion : IComparable<MissionVersion>, IEquatable<MissionVersion>
     {
         private readonly IMissionVersionComparer _missionVersionComparer;
-        public string TextRepresentation { get; }
 
         public MissionVersion(string textRepresentation, IMissionVersionComparer missionVersionComparer)
         {
             TextRepresentation = textRepresentation;
             _missionVersionComparer = missionVersionComparer;
         }
+
+        public string TextRepresentation { get; }
 
         public int CompareTo(MissionVersion other)
         {
@@ -29,7 +30,7 @@ namespace FtpMissionsManipulator
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == this.GetType() && Equals((MissionVersion) obj);
+            return obj.GetType() == GetType() && Equals((MissionVersion) obj);
         }
 
         public override int GetHashCode()

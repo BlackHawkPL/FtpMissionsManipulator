@@ -4,14 +4,14 @@ namespace FtpMissionsManipulator
 {
     public class MissionUpdate : IEquatable<MissionUpdate>
     {
-        public Mission OldMission { get; }
-        public Mission NewMission { get; }
-
         public MissionUpdate(Mission oldMission, Mission newMission)
         {
             OldMission = oldMission;
             NewMission = newMission;
         }
+
+        public Mission OldMission { get; }
+        public Mission NewMission { get; }
 
         public bool Equals(MissionUpdate other)
         {
@@ -24,7 +24,7 @@ namespace FtpMissionsManipulator
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((MissionUpdate) obj);
         }
 
@@ -32,7 +32,8 @@ namespace FtpMissionsManipulator
         {
             unchecked
             {
-                return ((OldMission != null ? OldMission.GetHashCode() : 0) * 397) ^ (NewMission != null ? NewMission.GetHashCode() : 0);
+                return ((OldMission != null ? OldMission.GetHashCode() : 0) * 397) ^
+                       (NewMission != null ? NewMission.GetHashCode() : 0);
             }
         }
     }

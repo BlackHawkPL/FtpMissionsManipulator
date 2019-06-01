@@ -21,11 +21,6 @@ namespace FtpMissionsManipulator.MissionSource
             _lastAccessTime = _timeProvider.GetCurrentTime();
         }
 
-        public string GetStringResponse(string directory)
-        {
-            return GetDirectoryListingAsync(directory).Result;
-        }
-
         public async Task<string> GetDirectoryListingAsync(string directory)
         {
             if (!_cache.ContainsKey(directory))
@@ -47,6 +42,11 @@ namespace FtpMissionsManipulator.MissionSource
         public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
         {
             return _connection.MoveFileAsync(fileName, sourceDir, targetDir);
+        }
+
+        public string GetStringResponse(string directory)
+        {
+            return GetDirectoryListingAsync(directory).Result;
         }
     }
 }

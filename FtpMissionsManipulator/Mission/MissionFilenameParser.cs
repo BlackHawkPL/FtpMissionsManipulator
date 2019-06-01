@@ -49,16 +49,6 @@ namespace FtpMissionsManipulator
             }
         }
 
-        private static int GetVersionStart(string mission)
-        {
-            var versionStart = mission
-                                   .Split('.')
-                                   .First()
-                                   .ToLowerInvariant()
-                                   .LastIndexOf("_v", StringComparison.Ordinal) + 1;
-            return versionStart;
-        }
-
         public string GetName(string mission)
         {
             try
@@ -112,6 +102,16 @@ namespace FtpMissionsManipulator
                 throw new ArgumentException("Terrain was not found");
 
             return match.Value;
+        }
+
+        private static int GetVersionStart(string mission)
+        {
+            var versionStart = mission
+                                   .Split('.')
+                                   .First()
+                                   .ToLowerInvariant()
+                                   .LastIndexOf("_v", StringComparison.Ordinal) + 1;
+            return versionStart;
         }
     }
 }

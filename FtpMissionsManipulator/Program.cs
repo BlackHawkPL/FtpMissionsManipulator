@@ -10,7 +10,7 @@ namespace FtpMissionsManipulator
     {
         private static string _readLine;
 
-        private static async Task Main(string[] args)
+        private static void Main()
         {
             var address = ConfigurationManager.AppSettings["address"];
             var username = ConfigurationManager.AppSettings["username"];
@@ -60,7 +60,7 @@ namespace FtpMissionsManipulator
                 PrintDuplicatesAsync(manipulator),
                 manipulator.TestAsync()
             };
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            Task.WhenAll(tasks).ConfigureAwait(false);
 
             Console.ReadKey();
         }

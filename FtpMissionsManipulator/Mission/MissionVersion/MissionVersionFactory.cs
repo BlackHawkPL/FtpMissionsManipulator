@@ -2,7 +2,8 @@
 {
     public class MissionVersionFactory : IMissionVersionFactory
     {
-        public MissionVersion GetMissionVersion(string textRepresentation, IMissionVersionComparer missionVersionComparer)
+        public MissionVersion GetMissionVersion(string textRepresentation,
+            IMissionVersionComparer missionVersionComparer)
         {
             return new MissionVersion(textRepresentation, missionVersionComparer);
         }

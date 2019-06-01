@@ -1,27 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using FtpMissionsManipulator;
 using FtpMissionsManipulator.MissionSource;
 using Moq;
 using NUnit.Framework;
 
-namespace FtpMissionsManipulatorTests.MissionSource
+namespace FtpMissionsManipulatorTests
 {
     [TestFixture]
     public class FtpMissionsSourceTests
     {
-        private Mock<IFtpConnection> _ftpConnectionMock;
-        private Mock<IMissionFactory> _missionFactoryMock;
-        private FtpMissionsSource _sut;
-        private string _missionName1;
-        private string _missionName2;
-        private Mission _mission1;
-        private Mission _mission2;
-        private string _directoryPrefix;
-        private string _brokenMissionName1;
-        private string _brokenMissionName2;
-
         [SetUp]
         public void Setup()
         {
@@ -39,6 +27,17 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _sut = new FtpMissionsSource(_missionFactoryMock.Object, _ftpConnectionMock.Object);
         }
 
+        private Mock<IFtpConnection> _ftpConnectionMock;
+        private Mock<IMissionFactory> _missionFactoryMock;
+        private FtpMissionsSource _sut;
+        private string _missionName1;
+        private string _missionName2;
+        private Mission _mission1;
+        private Mission _mission2;
+        private string _directoryPrefix;
+        private string _brokenMissionName1;
+        private string _brokenMissionName2;
+
         private void SetupConnection()
         {
             string GetFullLine(string missionName)
@@ -49,9 +48,9 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _ftpConnectionMock
                 .Setup(m => m.GetDirectoryListingAsync("test"))
                 .Returns(Task.FromResult(GetFullLine(_missionName1) +
-                         GetFullLine(_missionName2) +
-                         GetFullLine(_brokenMissionName1) +
-                         GetFullLine(_brokenMissionName2)));
+                                         GetFullLine(_missionName2) +
+                                         GetFullLine(_brokenMissionName1) +
+                                         GetFullLine(_brokenMissionName2)));
         }
 
         private void SetupFactory()
@@ -68,23 +67,11 @@ namespace FtpMissionsManipulatorTests.MissionSource
         }
 
         [Test]
-        public void GetMissionsFromDirectory_FtpConnectionInjected_FtpConnectionCalledWithCorrectDirectory()
+        public void GetFaultyFiles_FaultyFilesAvailable_CorrectlyReturned()
         {
-            var directory = "test";
-            var unused = _sut.GetMissionsFromDirectoryAsync(directory).Result;
+            var result = _sut.GetFaultyFilesAsync("test").Result;
 
-            _ftpConnectionMock.Verify(m => m.GetDirectoryListingAsync(directory), Times.Once);
-        }
-
-        [Test]
-        public void GetMissionsFromDirectory_MissionFactoryInjected_MissionCreatedForEachEntry()
-        {
-            _sut.GetMissionsFromDirectoryAsync("test");
-
-            _missionFactoryMock
-                .Verify(m => m.GetMission(_missionName1), Times.Once);
-            _missionFactoryMock
-                .Verify(m => m.GetMission(_missionName2), Times.Once);
+            CollectionAssert.AreEquivalent(new[] {_brokenMissionName1, _brokenMissionName2}, result);
         }
 
         [Test]
@@ -92,7 +79,16 @@ namespace FtpMissionsManipulatorTests.MissionSource
         {
             var result = _sut.GetMissionsFromDirectoryAsync("test");
 
-            CollectionAssert.AreEquivalent(new [] {_mission1, _mission2}, result.Result);
+            CollectionAssert.AreEquivalent(new[] {_mission1, _mission2}, result.Result);
+        }
+
+        [Test]
+        public void GetMissionsFromDirectory_FtpConnectionInjected_FtpConnectionCalledWithCorrectDirectory()
+        {
+            var directory = "test";
+            var unused = _sut.GetMissionsFromDirectoryAsync(directory).Result;
+
+            _ftpConnectionMock.Verify(m => m.GetDirectoryListingAsync(directory), Times.Once);
         }
 
         [Test]
@@ -104,15 +100,18 @@ namespace FtpMissionsManipulatorTests.MissionSource
 
             var result = _sut.GetMissionsFromDirectoryAsync("test").Result;
 
-            CollectionAssert.AreEquivalent(new [] {_mission2}, result);
+            CollectionAssert.AreEquivalent(new[] {_mission2}, result);
         }
 
         [Test]
-        public void GetFaultyFiles_FaultyFilesAvailable_CorrectlyReturned()
+        public void GetMissionsFromDirectory_MissionFactoryInjected_MissionCreatedForEachEntry()
         {
-            var result = _sut.GetFaultyFilesAsync("test").Result;
+            var unused = _sut.GetMissionsFromDirectoryAsync("test").Result;
 
-            CollectionAssert.AreEquivalent(new [] {_brokenMissionName1, _brokenMissionName2}, result);
+            _missionFactoryMock
+                .Verify(m => m.GetMission(_missionName1), Times.Once);
+            _missionFactoryMock
+                .Verify(m => m.GetMission(_missionName2), Times.Once);
         }
     }
 }
