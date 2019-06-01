@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Castle.Core.Internal;
 using FtpMissionsManipulator;
 using FtpMissionsManipulator.MissionSource;
@@ -92,17 +93,17 @@ namespace FtpMissionsManipulatorTests
         {
             _missionSourceMock = new Mock<IMissionsSource>();
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_liveDirectory))
-                .Returns(_liveMissions);
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_liveDirectory))
+                .Returns(Task.FromResult(_liveMissions));
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_pendingDirectory))
-                .Returns(_pendingMissions);
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult(_pendingMissions));
             _missionSourceMock
-                .Setup(m => m.GetFaultyFiles(_liveDirectory))
-                .Returns(_missionsWithIncorrectNames);
+                .Setup(m => m.GetFaultyFilesAsync(_liveDirectory))
+                .Returns(Task.FromResult(_missionsWithIncorrectNames));
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_brokenDirectory))
-                .Returns(_brokenMissions);
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_brokenDirectory))
+                .Returns(Task.FromResult(_brokenMissions));
 
             _sut = new MissionManipulator(_missionSourceMock.Object);
         }
@@ -112,7 +113,7 @@ namespace FtpMissionsManipulatorTests
         {
             var result = _sut.GetLiveMissionsAsync().Result;
 
-            _missionSourceMock.Verify(m => m.GetMissionsFromDirectory(_liveDirectory), Times.Once);
+            _missionSourceMock.Verify(m => m.GetMissionsFromDirectoryAsync(_liveDirectory), Times.Once);
         }
 
         [Test]
@@ -128,7 +129,7 @@ namespace FtpMissionsManipulatorTests
         {
             var unused = _sut.GetPendingMissionsAsync().Result;
 
-            _missionSourceMock.Verify(m => m.GetMissionsFromDirectory(_pendingDirectory), Times.Once);
+            _missionSourceMock.Verify(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory), Times.Once);
         }
 
         [Test]
@@ -153,8 +154,8 @@ namespace FtpMissionsManipulatorTests
         public void GetUpdatedMissions_NoUpdatesPending_NoMissionUpdatesCreated()
         {
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_pendingDirectory))
-                .Returns(Enumerable.Empty<Mission>());
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult(Enumerable.Empty<Mission>()));
 
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
@@ -165,11 +166,11 @@ namespace FtpMissionsManipulatorTests
         public void GetUpdatedMissions_NewMissionPending_NoMissionUpdatesCreated()
         {
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_pendingDirectory))
-                .Returns(new[]
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
                 {
                     new Mission(),
-                });
+                }));
 
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
@@ -186,13 +187,13 @@ namespace FtpMissionsManipulatorTests
             };
 
             _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectory(_pendingDirectory))
-                .Returns(new[]
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
                 {
                     _updatedMission,
                     _anotherUpdatedMission,
                     new Mission(), 
-                });
+                }));
 
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 

@@ -26,23 +26,7 @@ namespace FtpMissionsManipulator.MissionSource
 
         public string GetStringResponse(string directory)
         {
-            if (!(WebRequest.Create(GetDirectoryAtAddress(directory)) is FtpWebRequest request))
-                throw new Exception("webrequest was null");
-        
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
-            request.Credentials = new NetworkCredential(_userName, _password);
-
-            if (!(request.GetResponse() is FtpWebResponse response))
-                throw new Exception("response was null");
-
-            var responseStream = response.GetResponseStream();
-            var reader = new StreamReader(responseStream ?? throw new InvalidOperationException());
-            var result = reader.ReadToEnd();
-
-            response.Close();
-            reader.Close();
-            return result;
-        
+            return GetStringResponseAsync(directory).Result;
         }
 
         public async Task<string> GetStringResponseAsync(string directory)

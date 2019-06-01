@@ -16,7 +16,7 @@ namespace FtpMissionsManipulator.MissionSource
 
         public string GetStringResponse(string directory)
         {
-            throw new System.NotImplementedException();
+            return GetStringResponseAsync(directory).Result;
         }
 
         public Task<string> GetStringResponseAsync(string directory)

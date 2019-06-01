@@ -34,7 +34,7 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _sut.GetStringResponse("test");
 
             _connectionMock
-                .Verify(m => m.GetStringResponse("test"), Times.Once);
+                .Verify(m => m.GetStringResponseAsync("test"), Times.Once);
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _sut.GetStringResponse("test");
 
             _connectionMock
-                .Verify(m => m.GetStringResponse("test"), Times.Once);
+                .Verify(m => m.GetStringResponseAsync("test"), Times.Once);
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace FtpMissionsManipulatorTests.MissionSource
             _sut.GetStringResponse("test");
 
             _connectionMock
-                .Verify(m => m.GetStringResponse("test"), Times.Exactly(2));
+                .Verify(m => m.GetStringResponseAsync("test"), Times.Exactly(2));
         }
     }
 }
