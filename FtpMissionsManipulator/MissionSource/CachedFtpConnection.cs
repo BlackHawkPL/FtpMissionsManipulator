@@ -44,9 +44,9 @@ namespace FtpMissionsManipulator.MissionSource
             return _connection.MoveFileAsync(fileName, sourceDir, targetDir);
         }
 
-        public string GetStringResponse(string directory)
+        public Task DeleteFileAsync(string fileName, string directory)
         {
-            return GetDirectoryListingAsync(directory).Result;
+            return _connection.DeleteFileAsync(fileName, directory);
         }
     }
 }

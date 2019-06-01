@@ -6,5 +6,6 @@ namespace FtpMissionsManipulator.MissionSource
     {
         Task<string> GetDirectoryListingAsync(string directory);
         Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir);
+        Task DeleteFileAsync(string fileName, string directory);
     }
 }

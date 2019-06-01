@@ -50,12 +50,19 @@ namespace FtpMissionsManipulator.MissionSource
             return result;
         }
 
-        public async Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
+        public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
         {
             var result = GetResponseAsync($"{sourceDir}/{fileName}", WebRequestMethods.Ftp.Rename,
                 $"/{targetDir}/{fileName}");
-            Console.WriteLine(await result.ConfigureAwait(false));
-            return await Task.FromResult(true).ConfigureAwait(false);
+            Console.WriteLine("M: " + fileName);
+            return Task.FromResult(true);
+        }
+
+        public Task DeleteFileAsync(string fileName, string directory)
+        {
+            var result = GetResponseAsync($"{directory}/{fileName}", WebRequestMethods.Ftp.DeleteFile);
+            Console.WriteLine("D: " + fileName);
+            return result;
         }
     }
 }

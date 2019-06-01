@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
 using System.Threading.Tasks;
 using Autofac;
 using FtpMissionsManipulator.MissionSource;
@@ -52,17 +53,43 @@ namespace FtpMissionsManipulator
 
             var manipulator = builder.Build().Resolve<MissionManipulator>();
 
+            PrepareTestDir();
+            Console.WriteLine("files copied");
             var tasks = new[]
             {
-                PrintLiveAsync(manipulator),
+                //PrintLiveAsync(manipulator),
                 PrintFaultyAsync(manipulator),
                 PrintUpdatedAsync(manipulator),
                 PrintDuplicatesAsync(manipulator),
-                manipulator.TestAsync()
+                MovePendingToLiveAsync(manipulator) //todo test empty directories
             };
             Task.WhenAll(tasks).ConfigureAwait(false);
 
             Console.ReadKey();
+        }
+
+        private static Task MovePendingToLiveAsync(MissionManipulator manipulator)
+        {
+            return manipulator.MovePendingToLiveAsync();
+        }
+
+        private static void PrepareTestDir()
+        {
+            const string target = @"C:\ftp";
+            const string source = @"C:\ftp_template";
+            if (Directory.Exists(target))
+            {
+                Directory.Delete(target, true);
+            }
+
+            foreach (var dirPath in Directory.GetDirectories(source, "*",
+                SearchOption.AllDirectories))
+                Directory.CreateDirectory(dirPath.Replace(source, target));
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (var newPath in Directory.GetFiles(source, "*.*",
+                SearchOption.AllDirectories))
+                File.Copy(newPath, newPath.Replace(source, target), true);
         }
 
         private static async Task PrintDuplicatesAsync(MissionManipulator manipulator)

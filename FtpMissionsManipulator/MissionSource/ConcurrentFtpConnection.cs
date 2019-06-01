@@ -26,5 +26,10 @@ namespace FtpMissionsManipulator.MissionSource
         {
             return _inner.MoveFileAsync(fileName, sourceDir, targetDir);
         }
+
+        public Task DeleteFileAsync(string fileName, string directory)
+        {
+            return _inner.DeleteFileAsync(fileName, directory);
+        }
     }
 }

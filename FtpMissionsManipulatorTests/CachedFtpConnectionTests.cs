@@ -29,7 +29,7 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetStringResponse_InnerObjectCorrectlySet_InnerConnectionInvoked()
         {
-            _sut.GetStringResponse("test");
+            var unused = _sut.GetDirectoryListingAsync("test").Result;
 
             _connectionMock
                 .Verify(m => m.GetDirectoryListingAsync("test"), Times.Once);
@@ -38,10 +38,10 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetStringResponse_SecondRequestAfterCacheTime_InnerInvokedAgain()
         {
-            _sut.GetStringResponse("test");
+            var unused = _sut.GetDirectoryListingAsync("test").Result;
             _time += TimeSpan.FromSeconds(5);
 
-            _sut.GetStringResponse("test");
+            var unused1 = _sut.GetDirectoryListingAsync("test").Result;
 
             _connectionMock
                 .Verify(m => m.GetDirectoryListingAsync("test"), Times.Exactly(2));
@@ -50,10 +50,10 @@ namespace FtpMissionsManipulatorTests
         [Test]
         public void GetStringResponse_SecondRequestWithinCacheTime_InnerNotInvoked()
         {
-            _sut.GetStringResponse("test");
+            var unused = _sut.GetDirectoryListingAsync("test").Result;
             _time += TimeSpan.FromSeconds(1);
 
-            _sut.GetStringResponse("test");
+            var unused1 = _sut.GetDirectoryListingAsync("test").Result;
 
             _connectionMock
                 .Verify(m => m.GetDirectoryListingAsync("test"), Times.Once);

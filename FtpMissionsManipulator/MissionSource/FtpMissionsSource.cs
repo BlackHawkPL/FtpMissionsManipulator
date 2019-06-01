@@ -65,6 +65,16 @@ namespace FtpMissionsManipulator.MissionSource
             return _ftpConnection.MoveFileAsync(mission.FullName, source, destination);
         }
 
+        public Task DeleteMissionAsync(Mission mission, string directory)
+        {
+            return _ftpConnection.DeleteFileAsync(mission.FullName, directory);
+        }
+
+        public Task DeleteFileAsync(string fileName, string directory)
+        {
+            return _ftpConnection.DeleteFileAsync(fileName, directory);
+        }
+
         private IEnumerable<Mission> CreateMissions(IEnumerable<string> missionNames)
         {
             foreach (var missionName in missionNames)
