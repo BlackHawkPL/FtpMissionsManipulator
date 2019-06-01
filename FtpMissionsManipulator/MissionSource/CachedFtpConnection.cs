@@ -23,14 +23,14 @@ namespace FtpMissionsManipulator.MissionSource
 
         public string GetStringResponse(string directory)
         {
-            return GetStringResponseAsync(directory).Result;
+            return GetDirectoryListingAsync(directory).Result;
         }
 
-        public async Task<string> GetStringResponseAsync(string directory)
+        public async Task<string> GetDirectoryListingAsync(string directory)
         {
             if (!_cache.ContainsKey(directory))
             {
-                var response = await _connection.GetStringResponseAsync(directory).ConfigureAwait(false);
+                var response = await _connection.GetDirectoryListingAsync(directory).ConfigureAwait(false);
                 if (!_cache.ContainsKey(directory))
                     _cache.Add(directory, response);
             }
@@ -38,10 +38,15 @@ namespace FtpMissionsManipulator.MissionSource
             if (_lastAccessTime.AddSeconds(_invalidateAfter) >= _timeProvider.GetCurrentTime())
                 return _cache[directory];
 
-            _cache[directory] = await _connection.GetStringResponseAsync(directory).ConfigureAwait(false);
+            _cache[directory] = await _connection.GetDirectoryListingAsync(directory).ConfigureAwait(false);
             _lastAccessTime = _timeProvider.GetCurrentTime();
 
             return _cache[directory];
+        }
+
+        public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
+        {
+            return _connection.MoveFileAsync(fileName, sourceDir, targetDir);
         }
     }
 }

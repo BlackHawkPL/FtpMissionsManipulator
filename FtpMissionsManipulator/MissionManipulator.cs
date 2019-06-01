@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace FtpMissionsManipulator
         private readonly IMissionsSource _missionsSource;
         public const string FinalDirectory = "_FINAL";
         public const string LiveDirectory = "SRV1";
-        public const string BrokenDirectory = "BROKEN";
+        public const string BrokenDirectory = "_BROKEN";
 
         public MissionManipulator(IMissionsSource missionsSource)
         {
@@ -43,5 +44,11 @@ namespace FtpMissionsManipulator
                 .GroupBy(m => (m.Name, m.Type))
                 .Where(g => g.Count() > 1)
                 .SelectMany(g => g);
+
+        public Task TestAsync()
+        {
+            return _missionsSource.MoveMissionToFolderAsync(GetLiveMissionsAsync().Result.First(), LiveDirectory,
+                BrokenDirectory);
+        }
     }
 }

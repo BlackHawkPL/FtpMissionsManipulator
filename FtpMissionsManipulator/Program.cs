@@ -1,22 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using FtpMissionsManipulator.MissionSource;
 using System.Configuration;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
 using Autofac;
+using FtpMissionsManipulator.MissionSource;
 
 namespace FtpMissionsManipulator
 {
-    class Program
+    internal class Program
     {
         private static string _readLine;
 
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             var address = ConfigurationManager.AppSettings["address"];
             var username = ConfigurationManager.AppSettings["username"];
@@ -63,12 +57,12 @@ namespace FtpMissionsManipulator
                 PrintLiveAsync(manipulator),
                 PrintFaultyAsync(manipulator),
                 PrintUpdatedAsync(manipulator),
-                PrintDuplicatesAsync(manipulator)
+                PrintDuplicatesAsync(manipulator),
+                manipulator.TestAsync()
             };
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             Console.ReadKey();
-
         }
 
         private static async Task PrintDuplicatesAsync(MissionManipulator manipulator)

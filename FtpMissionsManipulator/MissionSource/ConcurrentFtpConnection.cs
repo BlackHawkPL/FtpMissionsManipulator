@@ -16,15 +16,20 @@ namespace FtpMissionsManipulator.MissionSource
 
         public string GetStringResponse(string directory)
         {
-            return GetStringResponseAsync(directory).Result;
+            return GetDirectoryListingAsync(directory).Result;
         }
 
-        public Task<string> GetStringResponseAsync(string directory)
+        public Task<string> GetDirectoryListingAsync(string directory)
         {
             if (!_pending.ContainsKey(directory))
-                _pending.Add(directory, _inner.GetStringResponseAsync(directory));
+                _pending.Add(directory, _inner.GetDirectoryListingAsync(directory));
 
             return _pending[directory];
+        }
+
+        public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
+        {
+            return _inner.MoveFileAsync(fileName, sourceDir, targetDir);
         }
     }
 }

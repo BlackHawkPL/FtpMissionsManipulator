@@ -16,19 +16,6 @@ namespace FtpMissionsManipulator.MissionSource
             _missionFactory = missionFactory;
         }
 
-        public IEnumerable<Mission> GetMissionsFromDirectory(string directory)
-        {
-            var response = _ftpConnection.GetStringResponse(directory);
-
-            var missionStrings = response
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            var missions = CreateMissions(missionStrings);
-
-            return missions
-                .Where(m => m != null)
-                .ToList();
-        }
-
         private IEnumerable<Mission> CreateMissions(IEnumerable<string> missionNames)
         {
             foreach (var missionName in missionNames)
@@ -50,37 +37,10 @@ namespace FtpMissionsManipulator.MissionSource
             }
         }
 
-        public IEnumerable<string> GetFaultyFiles(string directory)
-        {
-            var response = _ftpConnection.GetStringResponse(directory);
-
-            var missionStrings = response
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
-            var result = new List<string>();
-            foreach (var missionName in missionStrings)
-            {
-                var name = missionName.Trim()
-                    .Split('/')
-                    .Last();
-
-                try
-                {
-                    _missionFactory.GetMission(name);
-                }
-                catch (ArgumentException)
-                {
-                    result.Add(name);
-                }
-            }
-
-            return result;
-        }
-
         public async Task<IEnumerable<Mission>> GetMissionsFromDirectoryAsync(string directory)
         {
             var response = await _ftpConnection
-                .GetStringResponseAsync(directory)
+                .GetDirectoryListingAsync(directory)
                 .ConfigureAwait(false);
 
             var missionStrings = response
@@ -95,7 +55,7 @@ namespace FtpMissionsManipulator.MissionSource
         public async Task<IEnumerable<string>> GetFaultyFilesAsync(string directory)
         {
             var response = await _ftpConnection
-                .GetStringResponseAsync(directory)
+                .GetDirectoryListingAsync(directory)
                 .ConfigureAwait(false);
 
             var missionStrings = response
@@ -119,6 +79,11 @@ namespace FtpMissionsManipulator.MissionSource
             }
 
             return result;
+        }
+
+        public Task<bool> MoveMissionToFolderAsync(Mission mission, string source, string destination)
+        {
+            return _ftpConnection.MoveFileAsync(mission.FullName, source, destination);
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
@@ -14,19 +12,6 @@ namespace FtpMissionsManipulatorTests
     [TestFixture]
     public class MissionManipulatorTests
     {
-        private MissionManipulator _sut;
-        private Mock<IMissionsSource> _missionSourceMock;
-        private string _liveDirectory;
-        private IEnumerable<Mission> _liveMissions;
-        private string _pendingDirectory;
-        private IEnumerable<Mission> _pendingMissions;
-        private Mission _updatedMission;
-        private Mission _oldMission;
-        private Mission _anotherUpdatedMission;
-        private IEnumerable<string> _missionsWithIncorrectNames;
-        private IEnumerable<Mission> _brokenMissions;
-        private string _brokenDirectory;
-
         [SetUp]
         public void Setup()
         {
@@ -39,19 +24,41 @@ namespace FtpMissionsManipulatorTests
             SetupMocks();
         }
 
+        private MissionManipulator _sut;
+        private Mock<IMissionsSource> _missionSourceMock;
+        private string _liveDirectory;
+        private IEnumerable<Mission> _liveMissions;
+        private string _pendingDirectory;
+        private IEnumerable<Mission> _pendingMissions;
+        private Mission _updatedMission;
+        private Mission _oldMission;
+        private Mission _anotherUpdatedMission;
+        private IEnumerable<string> _missionsWithIncorrectNames;
+        private IEnumerable<Mission> _brokenMissions;
+        private string _brokenDirectory;
+        private IEnumerable<Mission> _liveMissionsWithDuplicates;
+
         private void SetupCollections()
         {
             _missionsWithIncorrectNames = new[] {"mission1", "mission2"};
 
+            _liveMissionsWithDuplicates = new[]
+            {
+                _oldMission,
+                _updatedMission,
+                _anotherUpdatedMission,
+                new Mission()
+            };
+
             _liveMissions = new[]
             {
                 _oldMission,
-                new Mission(),
+                new Mission()
             };
             _pendingMissions = new[]
             {
                 new Mission(),
-                _updatedMission,
+                _updatedMission
             };
 
             _brokenMissions = new[]
@@ -109,6 +116,14 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
+        public void GetBrokenMissions_TwoBrokenMissions_CorrectlyReturned()
+        {
+            var result = _sut.GetBrokenMissionsAsync().Result;
+
+            CollectionAssert.AreEquivalent(_brokenMissions, result);
+        }
+
+        [Test]
         public void GetLiveMissions_MissionSourceProvidesMissions_CorrectDirectoryUsed()
         {
             var result = _sut.GetLiveMissionsAsync().Result;
@@ -122,6 +137,14 @@ namespace FtpMissionsManipulatorTests
             var result = _sut.GetLiveMissionsAsync().Result;
 
             CollectionAssert.AreEquivalent(_liveMissions, result);
+        }
+
+        [Test]
+        public void GetMissionsWithIncorrectNamesFromLive_TwoMissionsWithIncorrectNames_CorrectlyReturned()
+        {
+            var result = _sut.GetMissionsWithIncorrectNamesInLiveAsync().Result;
+
+            CollectionAssert.AreEquivalent(_missionsWithIncorrectNames, result);
         }
 
         [Test]
@@ -141,13 +164,41 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
-        public void GetUpdatedMissions_OneMissionHasUpdatePending_OneMissionUpdateCorrectlyCreated()
+        public void GetUpdatedMissions_MultipleVersionsOfSameMissionPending_UpdateForEachCreated()
         {
+            var expected = new[]
+            {
+                new MissionUpdate(_oldMission, _updatedMission),
+                new MissionUpdate(_oldMission, _anotherUpdatedMission)
+            };
+
+            _missionSourceMock
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
+                {
+                    _updatedMission,
+                    _anotherUpdatedMission,
+                    new Mission()
+                }));
+
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
-            Assert.AreEqual(1, result.Length);
-            Assert.AreEqual(_updatedMission, result.First().NewMission);
-            Assert.AreEqual(_oldMission, result.First().OldMission);
+            CollectionAssert.AreEquivalent(expected, result);
+        }
+
+        [Test]
+        public void GetUpdatedMissions_NewMissionPending_NoMissionUpdatesCreated()
+        {
+            _missionSourceMock
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
+                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
+                {
+                    new Mission()
+                }));
+
+            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
+
+            Assert.That(result.IsNullOrEmpty());
         }
 
         [Test]
@@ -163,57 +214,31 @@ namespace FtpMissionsManipulatorTests
         }
 
         [Test]
-        public void GetUpdatedMissions_NewMissionPending_NoMissionUpdatesCreated()
+        public void GetUpdatedMissions_OneMissionHasUpdatePending_OneMissionUpdateCorrectlyCreated()
         {
-            _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
-                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
-                {
-                    new Mission(),
-                }));
-
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
-            Assert.That(result.IsNullOrEmpty());
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(_updatedMission, result.First().NewMission);
+            Assert.AreEqual(_oldMission, result.First().OldMission);
         }
 
         [Test]
-        public void GetUpdatedMissions_MultipleVersionsOfSameMissionPending_UpdateForEachCreated()
+        public void GetDuplicateMissionsFromLiveAsync_DuplicateMissionsInLive_CorrectlyReturned()
         {
+            _missionSourceMock
+                .Setup(m => m.GetMissionsFromDirectoryAsync(_liveDirectory))
+                .Returns(Task.FromResult(_liveMissionsWithDuplicates));
             var expected = new[]
             {
-                new MissionUpdate(_oldMission, _updatedMission),
-                new MissionUpdate(_oldMission, _anotherUpdatedMission),
+                _oldMission,
+                _updatedMission,
+                _anotherUpdatedMission,
             };
 
-            _missionSourceMock
-                .Setup(m => m.GetMissionsFromDirectoryAsync(_pendingDirectory))
-                .Returns(Task.FromResult<IEnumerable<Mission>>(new[]
-                {
-                    _updatedMission,
-                    _anotherUpdatedMission,
-                    new Mission(), 
-                }));
-
-            var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
+            var result = _sut.GetDuplicateMissionsFromLiveAsync().Result.ToArray();
 
             CollectionAssert.AreEquivalent(expected, result);
-        }
-
-        [Test]
-        public void GetMissionsWithIncorrectNamesFromLive_TwoMissionsWithIncorrectNames_CorrectlyReturned()
-        {
-            var result = _sut.GetMissionsWithIncorrectNamesInLiveAsync().Result;
-
-            CollectionAssert.AreEquivalent(_missionsWithIncorrectNames, result);
-        }
-
-        [Test]
-        public void GetBrokenMissions_TwoBrokenMissions_CorrectlyReturned()
-        {
-            var result = _sut.GetBrokenMissionsAsync().Result;
-
-            CollectionAssert.AreEquivalent(_brokenMissions, result);
         }
     }
 }

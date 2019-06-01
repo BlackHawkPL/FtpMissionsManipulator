@@ -24,21 +24,23 @@ namespace FtpMissionsManipulator.MissionSource
             return _address + (!_address.EndsWith('/') ? "/" : "") + directory;
         }
 
-        public string GetStringResponse(string directory)
+        public Task<string> GetDirectoryListingAsync(string directory)
         {
-            return GetStringResponseAsync(directory).Result;
+            return GetResponseAsync(directory, WebRequestMethods.Ftp.ListDirectory);
         }
 
-        public async Task<string> GetStringResponseAsync(string directory)
+        private async Task<string> GetResponseAsync(string directory, string requestMethod, string renameTo = null)
         {
             if (!(WebRequest.Create(GetDirectoryAtAddress(directory)) is FtpWebRequest request)) //todo handle errors
                 throw new Exception("webrequest was null");
 
-            request.Method = WebRequestMethods.Ftp.ListDirectory;
+            request.Method = requestMethod;
             request.Credentials = new NetworkCredential(_userName, _password);
+            if (renameTo != null)
+                request.RenameTo = renameTo;
 
             if (!(request.GetResponse() is FtpWebResponse response))
-                throw new Exception("response was null");
+                throw new Exception("response was null"); //todo handle 550 (denied)
 
             var responseStream = response.GetResponseStream();
             var reader = new StreamReader(responseStream ?? throw new InvalidOperationException());
@@ -47,7 +49,14 @@ namespace FtpMissionsManipulator.MissionSource
             response.Close();
             reader.Close();
             return result;
+        }
 
+        public async Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
+        {
+            var result = GetResponseAsync($"{sourceDir}/{fileName}", WebRequestMethods.Ftp.Rename,
+                $"/{targetDir}/{fileName}");
+            Console.WriteLine(await result.ConfigureAwait(false));
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 }

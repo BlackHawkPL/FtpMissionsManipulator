@@ -4,7 +4,7 @@ namespace FtpMissionsManipulator.MissionSource
 {
     public interface IFtpConnection
     {
-        string GetStringResponse(string directory);
-        Task<string> GetStringResponseAsync(string directory);
+        Task<string> GetDirectoryListingAsync(string directory);
+        Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir);
     }
 }
