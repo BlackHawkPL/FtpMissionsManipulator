@@ -4,9 +4,9 @@ using FtpMissionsManipulator.MissionSource;
 
 namespace FtpMissionsManipulator
 {
-    public class ManipulatorFactory : IManipulatorFactory
+    public class MissionSourceFactory : IMissionSourceFactory
     {
-        public async Task<IMissionsManipulator> SetupAsync(string host, int port, string username, string password)
+        public async Task<IMissionsSource> SetupAsync(string host, int port, string username, string password)
         {
             var connection = new FtpConnection();
 
@@ -34,10 +34,11 @@ namespace FtpMissionsManipulator
                 .As<ITimeProvider>();
             builder.RegisterInstance(connection)
                 .As<IFtpConnection>();
-            builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
-            builder.RegisterDecorator<ConcurrentFtpConnection, IFtpConnection>();
+            //builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
+            //builder.RegisterDecorator<ConcurrentFtpConnection, IFtpConnection>();
+            builder.RegisterDecorator<DelayedFtpConnection, IFtpConnection>();
 
-            return builder.Build().Resolve<MissionsManipulator>();
+            return builder.Build().Resolve<IMissionsSource>();
         }
     }
 }

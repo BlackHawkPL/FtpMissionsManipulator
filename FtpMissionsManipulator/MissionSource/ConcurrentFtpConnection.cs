@@ -17,7 +17,11 @@ namespace FtpMissionsManipulator.MissionSource
         public Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
             if (!_pending.ContainsKey(directory))
-                _pending.Add(directory, _inner.GetDirectoryListingAsync(directory));
+            {
+                var task = _inner.GetDirectoryListingAsync(directory);
+                task.ContinueWith(_ => _pending.Remove(directory));
+                _pending.Add(directory, task);
+            }
 
             return _pending[directory];
         }

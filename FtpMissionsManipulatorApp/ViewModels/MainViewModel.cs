@@ -1,12 +1,17 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using FtpMissionsManipulator;
 using FtpMissionsManipulatorApp.Annotations;
+using Prism.Commands;
 using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace FtpMissionsManipulatorApp
@@ -14,36 +19,31 @@ namespace FtpMissionsManipulatorApp
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly Window _window;
-        private readonly IManipulatorFactory _manipulatorFactory;
-        private IMissionsManipulator _manipulator;
+        private readonly IMissionSourceFactory _missionSourceFactory;
+        private IMissionsSource _source;
+        private bool? _isShowingDuplicates = false;
 
-        public MainViewModel(Window w, IManipulatorFactory factory)
+        public MainViewModel(Window w, IMissionSourceFactory factory)
         {
             _window = w;
-            _manipulatorFactory = factory;
-            ConnectCommand = new RoutedCommand();
-            ListLiveCommand = new RoutedCommand();
-            Missions = new ObservableCollection<Mission>();
+            _missionSourceFactory = factory;
 
-            SetupCommand(ConnectCommand, Connect, true);
-            SetupCommand(ListLiveCommand, ListLive, () => _manipulator != null);
+            LiveMissions.CollectionChanged += (sender, e) => OnPropertyChanged(() => LiveMissionsLoaded);
+            PendingMissions.CollectionChanged += (sender, e) => OnPropertyChanged(() => PendingMissionsLoaded);
+
+            ConnectCommand = new DelegateCommand(async () => await ConnectAsync(), () => true);
+            RetrieveMissionsCommand = new DelegateCommand(async () => await GetMissionsAsync(), () => IsConnected)
+                .ObservesProperty(() => IsConnected);
+            MovePendingToLiveCommand = new DelegateCommand(async () => await MovePendingToLiveAsync(), () => PendingMissionsLoaded)
+                .ObservesCanExecute(_ => PendingMissionsLoaded);
+            RemoveDuplicatesCommand = new DelegateCommand(async () => await RemoveDuplicatesAsync(), () => LiveMissionsLoaded)
+                .ObservesCanExecute(_ => LiveMissionsLoaded);
+
+            //SetupCommand(ConnectCommand, ConnectAsync, true);
+            //SetupCommand(RetrieveMissionsCommand, GetMissionsAsync, () => _manipulator != null);
+            //SetupCommand(MovePendingToLiveCommand, MovePendingToLiveAsync, () => PendingMissions.Any());
+            //SetupCommand(RemoveDuplicatesCommand, RemoveDuplicatesAsync, () => LiveMissions.Any());
         }
-
-        private void SetupCommand(ICommand command, Action action, Func<bool> canExecute)
-        {
-            _window.CommandBindings.Add(new CommandBinding(command,
-                (sender, args) =>
-                {
-                    action();
-                },
-                (sender, args) => args.CanExecute = canExecute()));
-        }
-
-        private void SetupCommand(ICommand command, Action action, bool canExecute)
-        {
-            SetupCommand(command, action, () => canExecute);
-        }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -61,29 +61,78 @@ namespace FtpMissionsManipulatorApp
         }
 
 
-        public ICommand ConnectCommand { get; set; }
-        public RoutedCommand ListLiveCommand { get; set; }
+        public DelegateCommand ConnectCommand { get; }
+        public DelegateCommand RetrieveMissionsCommand { get; }
+        public DelegateCommand MovePendingToLiveCommand { get; }
+        public DelegateCommand RemoveDuplicatesCommand { get; }
 
-        private async void Connect()
+        private async Task ConnectAsync()
         {
-            _manipulator = await _manipulatorFactory.SetupAsync(Address, Port, Username, Password)
+            _source = await _missionSourceFactory.SetupAsync(Address, Port, Username, Password)
                 .ConfigureAwait(false);
 
-            if (_manipulator == null)
+            OnPropertyChanged(() => IsConnected);
+
+            if (_source == null)
                 MessageBox.Show("Could not connect");
         }
 
-        private async void ListLive()
+        private async Task GetMissionsAsync()
         {
-            var missions = await _manipulator.GetLiveMissionsAsync()
-                .ConfigureAwait(true);
-            foreach (var mission in missions)
+            await ShowMissionsAsync(() => _source.GetMissionsFromDirectoryAsync("SRV1"), LiveMissions);
+            await ShowMissionsAsync(() => _source.GetMissionsFromDirectoryAsync("_FINAL"), PendingMissions);
+            //await ShowMissionsAsync(() => _source.GetMissionsFromDirectoryAsync(), DuplicateMissions);
+        }
+
+        private async Task ShowMissionsAsync(Func<Task<IEnumerable<Mission>>> source, ObservableCollection<Mission> destination)
+        {
+            var missions = source();
+
+            destination.Clear();
+            foreach (var mission in await missions.ConfigureAwait(true))
             {
-                Missions.Add(mission);
+                destination.Add(mission);
             }
         }
 
-        public ObservableCollection<Mission> Missions { get; set; }
+        private async Task MovePendingToLiveAsync()
+        {
+            foreach (var mission in PendingMissions) //todo mutex read and write
+            {
+                await _source.MoveMissionToFolderAsync(mission, "_FINAL", "SRV1");
+            }
+        }
+
+        private async Task RemoveDuplicatesAsync()
+        {
+            
+        }
+
+
+        public ObservableCollection<Mission> PendingMissions { get; } = new ObservableCollection<Mission>();
+        public ObservableCollection<Mission> LiveMissions { get; } = new ObservableCollection<Mission>();
+        public ObservableCollection<Mission> DuplicateMissions { get; } = new ObservableCollection<Mission>();
+
+        public bool IsConnected => _source != null;
+        public bool LiveMissionsLoaded => LiveMissions.Any();
+        public bool PendingMissionsLoaded => PendingMissions.Any();
+
+        public bool? IsShowingLive
+        {
+            get => IsShowingDuplicates == false;
+            set => IsShowingDuplicates = !value;
+        }
+
+        public bool? IsShowingDuplicates
+        {
+            get => _isShowingDuplicates;
+            set
+            {
+                _isShowingDuplicates = value;
+                OnPropertyChanged();
+                OnPropertyChanged(() => IsShowingLive);
+            }
+        }
 
         public string Password { get; set; }
         public string Username { get; set; }

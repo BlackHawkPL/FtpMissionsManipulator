@@ -63,7 +63,7 @@ namespace FtpMissionsManipulator
             var updates = await GetUpdatedMissionsAsync().ConfigureAwait(false);
             foreach (var update in updates)
             {
-                await _missionsSource.DeleteMissionAsync(update.OldMission, LiveDirectory).ConfigureAwait(false); //todo test manipulating on non existent files
+                //await _missionsSource.DeleteMissionAsync(update.OldMission, LiveDirectory).ConfigureAwait(false); //todo test manipulating on non existent files
                 await _missionsSource.MoveMissionToFolderAsync(update.NewMission, FinalDirectory,
                     LiveDirectory).ConfigureAwait(false);
             }

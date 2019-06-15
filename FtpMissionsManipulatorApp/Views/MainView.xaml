@@ -6,20 +6,60 @@
         xmlns:local="clr-namespace:FtpMissionsManipulatorApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <StackPanel Width="200" HorizontalAlignment="Left">
+
+    <Window.Resources>
+        <Thickness x:Key="TextBoxMargin">5,0,5,0</Thickness>
+        <Thickness x:Key="ButtonMargin">5,5,5,0</Thickness>
+        <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"></ColumnDefinition>
+            <ColumnDefinition Width="2*"></ColumnDefinition>
+            <ColumnDefinition Width="2*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Margin" Value="{StaticResource ButtonMargin}"/>
+                </Style>
+                <Style TargetType="{x:Type TextBox}">
+                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+                </Style>
+                <Style TargetType="{x:Type PasswordBox}">
+                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+                </Style>
+            </StackPanel.Resources>
             <Label>User name</Label>
             <TextBox Text="{Binding Username}"/>
             <Label>Password</Label>
             <PasswordBox PasswordChanged="PasswordBox_PasswordChanged"/>
             <Label>Address</Label>
-            <UniformGrid Columns="2">
-                <TextBox Text="{Binding Address}"/>
-                <TextBox Text="{Binding Port}" Width="20"/>
-            </UniformGrid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*"></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <TextBox DockPanel.Dock="Left" Text="{Binding Address}" Grid.Column="0"/>
+                <TextBox DockPanel.Dock="Right" Text="{Binding Port}" Grid.Column="1"/>
+            </Grid>
             <Button Command="{Binding ConnectCommand}">Connect</Button>
-            <Button Command="{Binding ListLiveCommand}">List live missions</Button>
+            <Button Command="{Binding RetrieveMissionsCommand}">Retrieve all missions</Button>
+            <Button Command="{Binding MovePendingToLiveCommand}">Move pending to live</Button>
+            <Button Command="{Binding RemoveDuplicatesCommand}">Remove duplicates in live</Button>
         </StackPanel>
-        <ListView Width="200" HorizontalAlignment="Right" ItemsSource="{Binding Missions}" />
+        <DockPanel Grid.Column="1">
+            <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Pending Missions</Label>
+            <ListView VerticalAlignment="Stretch" ItemsSource="{Binding PendingMissions}" DockPanel.Dock="Bottom"/>
+        </DockPanel>
+        <DockPanel Grid.Column="2">
+            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center">
+                <Label DockPanel.Dock="Left" HorizontalAlignment="Center">Live Missions</Label>
+                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsShowingDuplicates}">Only duplicates</CheckBox>
+            </StackPanel>
+            <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding LiveMissions}" Visibility="{Binding IsShowingLive, Converter={StaticResource VisibleIfTrueConverter}}"/>
+            <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding DuplicateMissions}" Visibility="{Binding IsShowingDuplicates, Converter={StaticResource VisibleIfTrueConverter}}"/>
+        </DockPanel>
     </Grid>
 </Window>

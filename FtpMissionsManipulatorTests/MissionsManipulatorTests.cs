@@ -3,9 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
 using FtpMissionsManipulator;
-using FtpMissionsManipulator.MissionSource;
 using Moq;
 using NUnit.Framework;
+using IMissionsSource = FtpMissionsManipulator.MissionSource.IMissionsSource;
 
 namespace FtpMissionsManipulatorTests
 {

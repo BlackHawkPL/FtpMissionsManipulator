@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
 
@@ -10,27 +8,23 @@ namespace FtpMissionsManipulator.MissionSource
 {
     public class FtpConnection : IFtpConnection
     {
-        private FtpClient _Client;
-
-        public FtpConnection()
-        {
-        }
+        private FtpClient _client;
 
         public async Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
-            var files = await _Client.GetListingAsync(directory);
+            var files = await _client.GetListingAsync(directory);
 
             return files.Select(f => f.Name);
         }
 
-        public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
+        public async Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
         {
-            throw new NotImplementedException();
+            return await _client.MoveFileAsync(sourceDir + '/' + fileName, targetDir + '/' + fileName);
         }
 
-        public Task DeleteFileAsync(string fileName, string directory)
+        public async Task DeleteFileAsync(string fileName, string directory)
         {
-            throw new NotImplementedException();
+            await _client.DeleteFileAsync(directory + '/' + fileName);
         }
 
         public async Task<bool> TryConnectAsync(string host, int port, string user, string pass)
@@ -53,7 +47,7 @@ namespace FtpMissionsManipulator.MissionSource
                 return false;
             }
 
-            _Client = client;
+            _client = client;
             return true;
         }
     }
