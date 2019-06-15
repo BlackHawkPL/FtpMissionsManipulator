@@ -7,6 +7,19 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <StackPanel Width="200" HorizontalAlignment="Left">
+            <Label>User name</Label>
+            <TextBox Text="{Binding Username}"/>
+            <Label>Password</Label>
+            <PasswordBox PasswordChanged="PasswordBox_PasswordChanged"/>
+            <Label>Address</Label>
+            <UniformGrid Columns="2">
+                <TextBox Text="{Binding Address}"/>
+                <TextBox Text="{Binding Port}" Width="20"/>
+            </UniformGrid>
+            <Button Command="{Binding ConnectCommand}">Connect</Button>
+            <Button Command="{Binding ListLiveCommand}">List live missions</Button>
+        </StackPanel>
+        <ListView Width="200" HorizontalAlignment="Right" ItemsSource="{Binding Missions}" />
     </Grid>
 </Window>

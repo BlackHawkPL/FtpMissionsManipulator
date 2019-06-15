@@ -46,5 +46,10 @@ namespace FtpMissionsManipulator
         {
             return FullName != null ? FullName.GetHashCode() : 0;
         }
+
+        public override string ToString()
+        {
+            return FullName;
+        }
     }
 }

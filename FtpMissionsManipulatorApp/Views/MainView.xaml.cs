@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
+using FtpMissionsManipulator;
 
 namespace FtpMissionsManipulatorApp
 {
@@ -9,7 +11,16 @@ namespace FtpMissionsManipulatorApp
     {
         public MainView()
         {
+            DataContext = new MainViewModel(this, new ManipulatorFactory());
+
             InitializeComponent();
+        }
+
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            var password = (sender as PasswordBox)?.Password;
+
+            ((MainViewModel) DataContext).Password = password;
         }
     }
 }

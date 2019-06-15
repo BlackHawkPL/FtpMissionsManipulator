@@ -1,68 +1,60 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentFTP;
 
 namespace FtpMissionsManipulator.MissionSource
 {
     public class FtpConnection : IFtpConnection
     {
-        private readonly string _address;
-        private readonly string _password;
-        private readonly string _userName;
+        private FtpClient _Client;
 
-        public FtpConnection(string address, string userName, string password)
+        public FtpConnection()
         {
-            _address = address; //todo handle incorrect credentials
-            _userName = userName;
-            _password = password;
         }
 
-        private string GetDirectoryAtAddress(string directory)
+        public async Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
-            return _address + (!_address.EndsWith('/') ? "/" : "") + directory;
-        }
+            var files = await _Client.GetListingAsync(directory);
 
-        public Task<string> GetDirectoryListingAsync(string directory)
-        {
-            return GetResponseAsync(directory, WebRequestMethods.Ftp.ListDirectory);
-        }
-
-        private async Task<string> GetResponseAsync(string directory, string requestMethod, string renameTo = null)
-        {
-            if (!(WebRequest.Create(GetDirectoryAtAddress(directory)) is FtpWebRequest request)) //todo handle errors
-                throw new Exception("webrequest was null");
-
-            request.Method = requestMethod;
-            request.Credentials = new NetworkCredential(_userName, _password);
-            if (renameTo != null)
-                request.RenameTo = renameTo;
-
-            if (!(request.GetResponse() is FtpWebResponse response))
-                throw new Exception("response was null"); //todo handle 550 (denied)
-
-            var responseStream = response.GetResponseStream();
-            var reader = new StreamReader(responseStream ?? throw new InvalidOperationException());
-            var result = await reader.ReadToEndAsync().ConfigureAwait(false);
-
-            response.Close();
-            reader.Close();
-            return result;
+            return files.Select(f => f.Name);
         }
 
         public Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
         {
-            var result = GetResponseAsync($"{sourceDir}/{fileName}", WebRequestMethods.Ftp.Rename,
-                $"/{targetDir}/{fileName}");
-            Console.WriteLine("M: " + fileName);
-            return Task.FromResult(true);
+            throw new NotImplementedException();
         }
 
         public Task DeleteFileAsync(string fileName, string directory)
         {
-            var result = GetResponseAsync($"{directory}/{fileName}", WebRequestMethods.Ftp.DeleteFile);
-            Console.WriteLine("D: " + fileName);
-            return result;
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> TryConnectAsync(string host, int port, string user, string pass)
+        {
+            var client = new FtpClient(host, port, user, pass)
+            {
+                ConnectTimeout = 5000
+            };
+
+            try
+            {
+                await client.ConnectAsync().ConfigureAwait(false);
+            }
+            catch (FtpAuthenticationException)
+            {
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            _Client = client;
+            return true;
         }
     }
 }

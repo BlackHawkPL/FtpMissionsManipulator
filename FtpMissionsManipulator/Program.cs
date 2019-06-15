@@ -33,7 +33,7 @@ namespace FtpMissionsManipulator
 
             var builder = new ContainerBuilder();
 
-            builder.RegisterType<MissionManipulator>();
+            builder.RegisterType<MissionsManipulator>();
             builder.RegisterType<FtpMissionsSource>()
                 .As<IMissionsSource>();
             builder.RegisterType<MissionFactory>()
@@ -46,12 +46,12 @@ namespace FtpMissionsManipulator
                 .As<IMissionVersionFactory>();
             builder.RegisterType<TimeProvider>()
                 .As<ITimeProvider>();
-            builder.RegisterInstance(new FtpConnection(address, username, password))
+            builder.RegisterInstance(new FtpConnection())
                 .As<IFtpConnection>();
             builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
             builder.RegisterDecorator<ConcurrentFtpConnection, IFtpConnection>();
 
-            var manipulator = builder.Build().Resolve<MissionManipulator>();
+            var manipulator = builder.Build().Resolve<MissionsManipulator>();
 
             PrepareTestDir();
             Console.WriteLine("files copied");
@@ -68,7 +68,7 @@ namespace FtpMissionsManipulator
             Console.ReadKey();
         }
 
-        private static Task MovePendingToLiveAsync(MissionManipulator manipulator)
+        private static Task MovePendingToLiveAsync(MissionsManipulator manipulator)
         {
             return manipulator.MovePendingToLiveAsync();
         }
@@ -92,7 +92,7 @@ namespace FtpMissionsManipulator
                 File.Copy(newPath, newPath.Replace(source, target), true);
         }
 
-        private static async Task PrintDuplicatesAsync(MissionManipulator manipulator)
+        private static async Task PrintDuplicatesAsync(MissionsManipulator manipulator)
         {
             var missions = await manipulator.GetDuplicateMissionsFromLiveAsync().ConfigureAwait(false);
             Console.WriteLine("\nDuplicates are:");
@@ -100,7 +100,7 @@ namespace FtpMissionsManipulator
                 Console.WriteLine($"D {duplicate.FullName}");
         }
 
-        private static async Task PrintUpdatedAsync(MissionManipulator manipulator)
+        private static async Task PrintUpdatedAsync(MissionsManipulator manipulator)
         {
             var missionUpdates = await manipulator.GetUpdatedMissionsAsync().ConfigureAwait(false);
             Console.WriteLine("\nMissions to update are:");
@@ -109,7 +109,7 @@ namespace FtpMissionsManipulator
                     $"U {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
         }
 
-        private static async Task PrintFaultyAsync(MissionManipulator manipulator)
+        private static async Task PrintFaultyAsync(MissionsManipulator manipulator)
         {
             var objects = await manipulator.GetMissionsWithIncorrectNamesInLiveAsync().ConfigureAwait(false);
             Console.WriteLine("\nMissions with faulty names:");
@@ -117,7 +117,7 @@ namespace FtpMissionsManipulator
                 Console.WriteLine("F " + mission);
         }
 
-        private static async Task PrintLiveAsync(MissionManipulator manipulator)
+        private static async Task PrintLiveAsync(MissionsManipulator manipulator)
         {
             var missions = await manipulator.GetLiveMissionsAsync().ConfigureAwait(false);
             Console.WriteLine("\nLive missions:");

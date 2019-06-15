@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using FtpMissionsManipulator;
 using FtpMissionsManipulator.MissionSource;
@@ -15,7 +17,6 @@ namespace FtpMissionsManipulatorTests
         {
             _missionFactoryMock = new Mock<IMissionFactory>();
             _ftpConnectionMock = new Mock<IFtpConnection>();
-            _directoryPrefix = "_Live/";
             _missionName1 = "mission1";
             _missionName2 = "mission2";
             _brokenMissionName1 = "brokenMissionName1";
@@ -34,23 +35,17 @@ namespace FtpMissionsManipulatorTests
         private string _missionName2;
         private Mission _mission1;
         private Mission _mission2;
-        private string _directoryPrefix;
         private string _brokenMissionName1;
         private string _brokenMissionName2;
 
         private void SetupConnection()
         {
-            string GetFullLine(string missionName)
-            {
-                return _directoryPrefix + missionName + "\r\n";
-            }
-
             _ftpConnectionMock
                 .Setup(m => m.GetDirectoryListingAsync("test"))
-                .Returns(Task.FromResult(GetFullLine(_missionName1) +
-                                         GetFullLine(_missionName2) +
-                                         GetFullLine(_brokenMissionName1) +
-                                         GetFullLine(_brokenMissionName2)));
+                .Returns(Task.FromResult(new [] {_missionName1,
+                                         _missionName2,
+                                         _brokenMissionName1,
+                                         _brokenMissionName2}.AsEnumerable()));
         }
 
         private void SetupFactory()

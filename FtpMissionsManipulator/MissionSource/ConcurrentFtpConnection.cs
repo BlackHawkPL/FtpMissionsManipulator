@@ -6,15 +6,15 @@ namespace FtpMissionsManipulator.MissionSource
     public class ConcurrentFtpConnection : IFtpConnection
     {
         private readonly IFtpConnection _inner;
-        private readonly Dictionary<string, Task<string>> _pending;
+        private readonly Dictionary<string, Task<IEnumerable<string>>> _pending;
 
         public ConcurrentFtpConnection(IFtpConnection inner)
         {
-            _pending = new Dictionary<string, Task<string>>();
+            _pending = new Dictionary<string, Task<IEnumerable<string>>>();
             _inner = inner;
         }
 
-        public Task<string> GetDirectoryListingAsync(string directory)
+        public Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
             if (!_pending.ContainsKey(directory))
                 _pending.Add(directory, _inner.GetDirectoryListingAsync(directory));
@@ -30,6 +30,11 @@ namespace FtpMissionsManipulator.MissionSource
         public Task DeleteFileAsync(string fileName, string directory)
         {
             return _inner.DeleteFileAsync(fileName, directory);
+        }
+
+        public Task<bool> TryConnectAsync(string host, int port, string user, string pass)
+        {
+            return _inner.TryConnectAsync(host, port, user, pass);
         }
     }
 }

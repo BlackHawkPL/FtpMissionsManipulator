@@ -4,6 +4,11 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Authors>BlackHawk</Authors>
+    <Company />
+    <Product>FtpMissionsManipulator</Product>
+    <StartupObject>FtpMissionsManipulatorApp.App</StartupObject>
+    <AssemblyName>Ftp Missions Manipulator</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,7 +17,10 @@
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FtpMissionsManipulator\FtpMissionsManipulator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@ namespace FtpMissionsManipulator.MissionSource
 {
     public class CachedFtpConnection : IFtpConnection
     {
-        private readonly Dictionary<string, string> _cache;
+        private readonly Dictionary<string, IEnumerable<string>> _cache;
         private readonly IFtpConnection _connection;
         private readonly int _invalidateAfter;
         private readonly ITimeProvider _timeProvider;
@@ -17,11 +17,11 @@ namespace FtpMissionsManipulator.MissionSource
             _timeProvider = timeProvider;
             _invalidateAfter = invalidateAfter;
             _connection = inner;
-            _cache = new Dictionary<string, string>();
+            _cache = new Dictionary<string, IEnumerable<string>>();
             _lastAccessTime = _timeProvider.GetCurrentTime();
         }
 
-        public async Task<string> GetDirectoryListingAsync(string directory)
+        public async Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
             if (!_cache.ContainsKey(directory))
             {
@@ -47,6 +47,11 @@ namespace FtpMissionsManipulator.MissionSource
         public Task DeleteFileAsync(string fileName, string directory)
         {
             return _connection.DeleteFileAsync(fileName, directory);
+        }
+
+        public Task<bool> TryConnectAsync(string host, int port, string user, string pass)
+        {
+            return _connection.TryConnectAsync(host, port, user, pass);
         }
     }
 }

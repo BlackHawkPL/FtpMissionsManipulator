@@ -5,14 +5,14 @@ using FtpMissionsManipulator.MissionSource;
 
 namespace FtpMissionsManipulator
 {
-    public class MissionManipulator
+    public class MissionsManipulator : IMissionsManipulator
     {
         public const string FinalDirectory = "_FINAL";
         public const string LiveDirectory = "SRV1";
         public const string BrokenDirectory = "_BROKEN";
         private readonly IMissionsSource _missionsSource;
 
-        public MissionManipulator(IMissionsSource missionsSource)
+        public MissionsManipulator(IMissionsSource missionsSource)
         {
             _missionsSource = missionsSource;
         }

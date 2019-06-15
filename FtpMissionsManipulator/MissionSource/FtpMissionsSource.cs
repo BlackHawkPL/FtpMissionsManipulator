@@ -22,9 +22,7 @@ namespace FtpMissionsManipulator.MissionSource
                 .GetDirectoryListingAsync(directory)
                 .ConfigureAwait(false);
 
-            var missionStrings = response
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            var missions = CreateMissions(missionStrings);
+            var missions = CreateMissions(response);
 
             return missions
                 .Where(m => m != null)
@@ -37,23 +35,16 @@ namespace FtpMissionsManipulator.MissionSource
                 .GetDirectoryListingAsync(directory)
                 .ConfigureAwait(false);
 
-            var missionStrings = response
-                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
-
             var result = new List<string>();
-            foreach (var missionName in missionStrings)
+            foreach (var missionName in response)
             {
-                var name = missionName.Trim()
-                    .Split('/')
-                    .Last();
-
                 try
                 {
-                    _missionFactory.GetMission(name);
+                    _missionFactory.GetMission(missionName);
                 }
                 catch (ArgumentException)
                 {
-                    result.Add(name);
+                    result.Add(missionName);
                 }
             }
 
@@ -79,14 +70,10 @@ namespace FtpMissionsManipulator.MissionSource
         {
             foreach (var missionName in missionNames)
             {
-                var name = missionName.Trim()
-                    .Split('/')
-                    .Last();
-
                 Mission mission = null;
                 try
                 {
-                    mission = _missionFactory.GetMission(name);
+                    mission = _missionFactory.GetMission(missionName);
                 }
                 catch (ArgumentException)
                 {

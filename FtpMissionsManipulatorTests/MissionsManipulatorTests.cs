@@ -10,21 +10,21 @@ using NUnit.Framework;
 namespace FtpMissionsManipulatorTests
 {
     [TestFixture]
-    public class MissionManipulatorTests
+    public class MissionsManipulatorTests
     {
         [SetUp]
         public void Setup()
         {
-            _liveDirectory = MissionManipulator.LiveDirectory;
-            _pendingDirectory = MissionManipulator.FinalDirectory;
-            _brokenDirectory = MissionManipulator.BrokenDirectory;
+            _liveDirectory = MissionsManipulator.LiveDirectory;
+            _pendingDirectory = MissionsManipulator.FinalDirectory;
+            _brokenDirectory = MissionsManipulator.BrokenDirectory;
 
             SetupTestMissions();
             SetupCollections();
             SetupMocks();
         }
 
-        private MissionManipulator _sut;
+        private MissionsManipulator _sut;
         private Mock<IMissionsSource> _missionSourceMock;
         private string _liveDirectory;
         private IEnumerable<Mission> _liveMissions;
@@ -112,7 +112,7 @@ namespace FtpMissionsManipulatorTests
                 .Setup(m => m.GetMissionsFromDirectoryAsync(_brokenDirectory))
                 .Returns(Task.FromResult(_brokenMissions));
 
-            _sut = new MissionManipulator(_missionSourceMock.Object);
+            _sut = new MissionsManipulator(_missionSourceMock.Object);
         }
 
         [Test]
