@@ -5,20 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FtpMissionsManipulatorApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="400" Width="800" MinHeight="400" MinWidth="800" d:DataContext="{d:DesignInstance local:MainViewModel}">
 
     <Window.Resources>
         <Thickness x:Key="TextBoxMargin">5,0,5,0</Thickness>
         <Thickness x:Key="ButtonMargin">5,5,5,0</Thickness>
-        <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
     </Window.Resources>
 
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*"></ColumnDefinition>
-            <ColumnDefinition Width="2*"></ColumnDefinition>
-            <ColumnDefinition Width="2*"></ColumnDefinition>
+            <ColumnDefinition Width="3*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
+        <Grid.Resources>
+            <Style TargetType="{x:Type DockPanel}">
+                <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+            </Style>
+        </Grid.Resources>
         <StackPanel Grid.Column="0">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}">
@@ -44,22 +47,54 @@
                 <TextBox DockPanel.Dock="Left" Text="{Binding Address}" Grid.Column="0"/>
                 <TextBox DockPanel.Dock="Right" Text="{Binding Port}" Grid.Column="1"/>
             </Grid>
+            <Button Command="{Binding SaveSettingsCommand}">Save settings</Button>
             <Button Command="{Binding ConnectCommand}">Connect</Button>
             <Button Command="{Binding RetrieveMissionsCommand}">Retrieve all missions</Button>
-            <Button Command="{Binding MovePendingToLiveCommand}">Move pending to live</Button>
-            <Button Command="{Binding RemoveDuplicatesCommand}">Remove duplicates in live</Button>
+            <ProgressBar IsIndeterminate="{Binding IsLoading}" Height="10" Margin="5"></ProgressBar>
         </StackPanel>
-        <DockPanel Grid.Column="1">
-            <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Pending Missions</Label>
-            <ListView VerticalAlignment="Stretch" ItemsSource="{Binding PendingMissions}" DockPanel.Dock="Bottom"/>
-        </DockPanel>
-        <DockPanel Grid.Column="2">
-            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center">
-                <Label DockPanel.Dock="Left" HorizontalAlignment="Center">Live Missions</Label>
-                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsShowingDuplicates}">Only duplicates</CheckBox>
-            </StackPanel>
-            <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding LiveMissions}" Visibility="{Binding IsShowingLive, Converter={StaticResource VisibleIfTrueConverter}}"/>
-            <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding DuplicateMissions}" Visibility="{Binding IsShowingDuplicates, Converter={StaticResource VisibleIfTrueConverter}}"/>
-        </DockPanel>
+        <TabControl Grid.Column="1">
+            <TabItem Header="Overview" IsSelected="True" >
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0">
+                        <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Pending Missions</Label>
+                        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="{Binding IsPendingLoading}" Height="10"
+                                     Margin="5">
+                        </ProgressBar>
+                        <ListView VerticalAlignment="Stretch" ItemsSource="{Binding PendingMissions}" DockPanel.Dock="Bottom" />
+                    </DockPanel>
+                    <DockPanel Grid.Column="1">
+                        <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Live Missions</Label>
+                        <ProgressBar DockPanel.Dock="Top" IsIndeterminate="{Binding IsLiveLoading}" Height="10" Margin="5">
+                        </ProgressBar>
+                        <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding LiveMissions}" />
+                    </DockPanel>
+                    </Grid>
+            </TabItem>
+            <TabItem Header="Updates" IsEnabled="{Binding IsConnected}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding UpdateCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Update</Button>
+                    <ListView x:Name="UpdatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Updates}" VerticalAlignment="Stretch" Margin="10" SelectionChanged="UpdatesListView_SelectionChanged"></ListView>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Duplicates" IsEnabled="{Binding IsConnected}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveDuplicatesCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Remove selected</Button>
+                    <ListView x:Name="DuplicatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Duplicates}" VerticalAlignment="Stretch" Margin="10" SelectionChanged="DuplicatesListView_SelectionChanged"></ListView>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Invalid missions" IsEnabled="{Binding IsConnected}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveInvalidCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Remove selected</Button>
+                    <ListView x:Name="InvalidListView" DockPanel.Dock="Top" ItemsSource="{Binding InvalidMissions}" VerticalAlignment="Stretch" Margin="10" SelectionChanged="InvalidListView_SelectionChanged"></ListView>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="Pick missions" IsEnabled="{Binding IsConnected}">
+                WIP
+            </TabItem>
+        </TabControl>
     </Grid>
 </Window>

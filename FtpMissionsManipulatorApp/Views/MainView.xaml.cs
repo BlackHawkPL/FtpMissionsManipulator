@@ -1,4 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using FtpMissionsManipulator;
@@ -10,9 +14,12 @@ namespace FtpMissionsManipulatorApp
     /// </summary>
     public partial class MainView : Window
     {
+        private readonly MainViewModel _viewModel;
+
         public MainView()
         {
-            DataContext = new MainViewModel(this, new MissionSourceFactory());
+            _viewModel = new MainViewModel(new MissionSourceFactory(), new SettingsStorage());
+            DataContext = _viewModel;
             PrepareTestDir();
 
             InitializeComponent();
@@ -41,7 +48,31 @@ namespace FtpMissionsManipulatorApp
         {
             var password = (sender as PasswordBox)?.Password;
 
-            ((MainViewModel) DataContext).Password = password;
+            _viewModel.Password = password;
+        }
+
+        private static void UpdateCollection<T>(Action<IList<T>> listSetter, object list)
+        {
+            var listView = list as ListView;
+            var result = listView.SelectedItems
+                .Cast<T>()
+                .ToList();
+            listSetter(result);
+        }
+
+        private void DuplicatesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateCollection<Mission>(list => _viewModel.SelectedDuplicates = list, sender);
+        }
+
+        private void InvalidListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateCollection<string>(list => _viewModel.SelectedInvalid = list, sender);
+        }
+
+        private void UpdatesListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateCollection<MissionUpdate>(list => _viewModel.SelectedUpdates = list, sender);
         }
     }
 }

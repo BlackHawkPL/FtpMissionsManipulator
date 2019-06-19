@@ -10,7 +10,7 @@ namespace FtpMissionsManipulator.MissionSource
         public DelayedFtpConnection(IFtpConnection inner)
         {
             _inner = inner;
-            _delay = 5000;
+            _delay = 2000;
         }
 
         public async Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)

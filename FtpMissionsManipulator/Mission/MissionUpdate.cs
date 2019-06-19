@@ -36,5 +36,10 @@ namespace FtpMissionsManipulator
                        (NewMission != null ? NewMission.GetHashCode() : 0);
             }
         }
+
+        public override string ToString()
+        {
+            return NewMission + " -> " + OldMission;
+        }
     }
 }

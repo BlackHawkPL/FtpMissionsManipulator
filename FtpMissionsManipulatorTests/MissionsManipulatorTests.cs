@@ -5,7 +5,6 @@ using Castle.Core.Internal;
 using FtpMissionsManipulator;
 using Moq;
 using NUnit.Framework;
-using IMissionsSource = FtpMissionsManipulator.MissionSource.IMissionsSource;
 
 namespace FtpMissionsManipulatorTests
 {
