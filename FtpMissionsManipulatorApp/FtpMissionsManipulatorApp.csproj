@@ -10,6 +10,9 @@
     <StartupObject>FtpMissionsManipulatorApp.App</StartupObject>
     <AssemblyName>FtpMissionsManipulatorApp</AssemblyName>
     <PackageId>FtpMissionsManipulatorApp</PackageId>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Prism.Core" Version="6.2.1" />
+    <PackageReference Include="System.Reactive" Version="4.2.0-preview.566" />
   </ItemGroup>
 
   <ItemGroup>

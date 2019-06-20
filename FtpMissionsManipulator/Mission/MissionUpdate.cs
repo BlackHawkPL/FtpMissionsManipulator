@@ -26,7 +26,7 @@ namespace FtpMissionsManipulator
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(OldMissions, other.OldMissions) && Equals(NewMissions, other.NewMissions);
+            return OldMissions.SequenceEqual(other.OldMissions) && NewMissions.SequenceEqual(other.NewMissions);
         }
 
         public override bool Equals(object obj)

@@ -236,8 +236,8 @@ namespace FtpMissionsManipulatorTests
             var result = _sut.GetUpdatedMissionsAsync().Result.ToArray();
 
             Assert.AreEqual(1, result.Length);
-            Assert.AreEqual(_updatedMission, result.First().NewMission);
-            Assert.AreEqual(_oldMission, result.First().OldMission);
+            Assert.AreEqual(_updatedMission, result.First().NewMissions.First());
+            Assert.AreEqual(_oldMission, result.First().OldMissions.First());
         }
     }
 }
