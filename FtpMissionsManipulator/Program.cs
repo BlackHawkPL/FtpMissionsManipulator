@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using FtpMissionsManipulator.MissionSource;
@@ -106,7 +107,7 @@ namespace FtpMissionsManipulator
             Console.WriteLine("\nMissions to update are:");
             foreach (var update in missionUpdates)
                 Console.WriteLine(
-                    $"U {update.NewMission.Name} from {update.OldMission.Version} to {update.NewMission.Version}");
+                    $"U {update.NewMissions.First().Name} from {update.OldMissions.First().Version} to {update.NewMissions.First().Version}");
         }
 
         private static async Task PrintFaultyAsync(MissionsManipulator manipulator)

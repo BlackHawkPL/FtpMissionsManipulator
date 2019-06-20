@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Input;
 using FtpMissionsManipulator;
 using FtpMissionsManipulatorApp.Annotations;
@@ -147,6 +148,7 @@ namespace FtpMissionsManipulatorApp
                 .ConfigureAwait(false);
 
             OnPropertyChanged(() => IsConnected);
+            OnPropertyChanged(() => CurrentStatus);
 
             if (_source == null)
                 MessageBox.Show("Could not connect");
@@ -196,11 +198,17 @@ namespace FtpMissionsManipulatorApp
 
         private async Task<IEnumerable<MissionUpdate>> GetUpdatesAsync()
         {
-            return await Task.FromResult(LiveMissions.Join(
-                PendingMissions,
-                m => m.Name,
-                m => m.Name,
-                (m1, m2) => new MissionUpdate(m1, m2)));
+            var groupedPending = PendingMissions
+                .GroupBy(m => (m.Name, m.Type));
+            var groupedLive = LiveMissions
+                .GroupBy(m => (m.Name, m.Type));
+
+            var updates = groupedPending.Join(groupedLive,
+                m => (m.First().Name, m.First().Type),
+                m => (m.First().Name, m.First().Type),
+                 (newMissions, oldMissions) => new MissionUpdate(oldMissions, newMissions));
+
+            return await Task.FromResult(updates);
         }
 
         private async Task RemoveDuplicatesAsync()
@@ -209,6 +217,8 @@ namespace FtpMissionsManipulatorApp
             {
                 await _source.DeleteMissionAsync(duplicate, LiveDirectory);
             }
+
+            await GetMissionsAsync();
         }
 
         private async Task RemoveInvalidAsync()
@@ -217,14 +227,52 @@ namespace FtpMissionsManipulatorApp
             {
                 await _source.DeleteFileAsync(invalid, LiveDirectory);
             }
+
+            await GetMissionsAsync();
         }
 
         private async Task UpdateMissionsAsync()
         {
             foreach (var update in SelectedUpdates)
             {
-                //todo
+                var latestPending = update.NewMissions.OrderByDescending(m => m.Version).First();
+                var latestLive = update.OldMissions.OrderByDescending(m => m.Version).First();
+                var isLatestInPending = latestPending.Version.CompareTo(latestLive.Version) > 0;
+                var latest = isLatestInPending ? latestPending : latestLive;
+                bool confirmed;
+
+                if (update.OldMissions.Count() > 1 || update.NewMissions.Count() > 1)
+                    confirmed = ShowPrompt(latestPending.FullName);
+                else
+                    confirmed = true;
+
+                if (!confirmed)
+                    return;
+
+                var pendingMissionsToDelete =
+                    update.NewMissions.Where(m => !m.Equals(latest));
+
+                foreach (var mission in pendingMissionsToDelete)
+                    await _source.DeleteMissionAsync(mission, PendingDirectory);
+
+                var liveMissionsToDelete = update.OldMissions.Where(m => !m.Equals(latest));
+
+                foreach (var mission in liveMissionsToDelete)
+                    await _source.DeleteMissionAsync(mission, LiveDirectory);
+
+                if (isLatestInPending)
+                    await _source.MoveMissionToFolderAsync(latestPending, PendingDirectory, LiveDirectory);
             }
+
+            await GetMissionsAsync();
+        }
+
+        private bool ShowPrompt(string missionName)
+        {
+            var result = MessageBox.Show($"{missionName} will be moved to live, other instances of this mission will be removed, do you want to continue?",
+                "Confirmation",
+                MessageBoxButtons.YesNo);
+            return result == DialogResult.Yes;
         }
 
         private void SaveSettings()
@@ -306,5 +354,10 @@ namespace FtpMissionsManipulatorApp
             }
         }
 
+        public string CurrentStatus => IsConnected ? "Connected" : "Disconnected";
+
+        public ObservableCollection<string> LoggedOperations { get; } = new ObservableCollection<string>();
+
+        public string CurrentOperation => "Idle";
     }
 }

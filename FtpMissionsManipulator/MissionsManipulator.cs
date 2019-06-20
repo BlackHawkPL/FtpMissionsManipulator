@@ -38,7 +38,7 @@ namespace FtpMissionsManipulator
             var pending = await GetPendingMissionsAsync().ConfigureAwait(false);
             return missions.Join(
                 pending,
-                m => m.Name,
+                m => m.Name, //incorrect
                 m => m.Name,
                 (m1, m2) => new MissionUpdate(m1, m2));
         }
@@ -60,13 +60,13 @@ namespace FtpMissionsManipulator
         {
             //todo mission can be moved in the process: first check if it's still there
             //todo tests for operations with faults
-            var updates = await GetUpdatedMissionsAsync().ConfigureAwait(false);
-            foreach (var update in updates)
-            {
-                //await _missionsSource.DeleteMissionAsync(update.OldMission, LiveDirectory).ConfigureAwait(false); //todo test manipulating on non existent files
-                await _missionsSource.MoveMissionToFolderAsync(update.NewMission, FinalDirectory,
-                    LiveDirectory).ConfigureAwait(false);
-            }
+            //var updates = await GetUpdatedMissionsAsync().ConfigureAwait(false);
+            //foreach (var update in updates)
+            //{
+            //    //await _missionsSource.DeleteMissionAsync(update.OldMission, LiveDirectory).ConfigureAwait(false); //todo test manipulating on non existent files
+            //    await _missionsSource.MoveMissionToFolderAsync(update.NewMission, FinalDirectory,
+            //        LiveDirectory).ConfigureAwait(false);
+            //}
         }
     }
 }
