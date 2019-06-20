@@ -31,6 +31,7 @@ namespace FtpMissionsManipulatorApp
         private IList<Mission> _selectedDuplicates = new List<Mission>();
         private IList<string> _selectedInvalid = new List<string>();
         private IList<MissionUpdate> _selectedUpdates = new List<MissionUpdate>();
+        private IList<Mission> _selectedPending = new List<Mission>();
 
         public MainViewModel(IMissionSourceFactory factory, ISettingsStorage settingsStorage)
         {
@@ -45,19 +46,14 @@ namespace FtpMissionsManipulatorApp
         private void SetupCommands()
         {
             ConnectCommand = SetupCommand(ConnectAsync, () => CanConnect, v => IsLoading = v);
-
-            RetrieveMissionsCommand = new DelegateCommand(async () => await GetMissionsAsync(), () => IsConnected)
-                .ObservesProperty(() => IsConnected);
+            RetrieveMissionsCommand = SetupCommand(GetMissionsAsync, () => IsConnected, v => IsLoading = v);
             MovePendingToLiveCommand =
-                new DelegateCommand(async () => await MovePendingToLiveAsync(), () => PendingMissionsLoaded)
-                    .ObservesProperty(() => PendingMissionsLoaded);
-            RemoveDuplicatesCommand = new DelegateCommand(async () => await RemoveDuplicatesAsync(), () => true);
-            SaveSettingsCommand = new DelegateCommand(SaveSettings, () => AllFieldsFilled)
-                .ObservesProperty(() => AllFieldsFilled);
-
-            UpdateCommand = new DelegateCommand(async () => await UpdateMissionsAsync(), () => true);
-
-            RemoveInvalidCommand = new DelegateCommand(async () => await RemoveInvalidAsync(), () => true);
+                SetupCommand(MovePendingToLiveAsync, () => PendingMissionsLoaded, v => IsLoading = v);
+            RemoveDuplicatesCommand = SetupCommand(RemoveDuplicatesAsync, () => AnyDuplicatesSelected, v => IsLoading = v);
+            SaveSettingsCommand = SetupCommand(async () => SaveSettings(), () => AllFieldsFilled, v => IsLoading = v);
+            UpdateCommand = SetupCommand(UpdateMissionsAsync, () => AnyUpdatesSelected, v => IsLoading = v);
+            RemoveInvalidCommand = SetupCommand(RemoveInvalidAsync, () => AnyInvalidSelected, v => IsLoading = v);
+            UnselectAllCommand = SetupCommand(async () => UnselectAllAsync(), () => AnyPendingSelected, v => IsLoading = v);
         }
 
         private ICommand SetupCommand(Func<Task> action, Expression<Func<bool>> canExecute, Action<bool> progressChange)
@@ -98,20 +94,14 @@ namespace FtpMissionsManipulatorApp
                 new PropertyChangedEventArgs((propertySelector.Body as MemberExpression)?.Member.Name));
         }
 
-
-        public ICommand ConnectCommand { get; set; }
-
-        public ICommand RetrieveMissionsCommand { get; set; }
-
-        public ICommand MovePendingToLiveCommand { get; set; }
-
-        public ICommand RemoveDuplicatesCommand { get; set; }
-
-        public ICommand SaveSettingsCommand { get; set; }
-
-        public ICommand UpdateCommand { get; set; }
-
-        public ICommand RemoveInvalidCommand { get; set; }
+        public ICommand ConnectCommand { get; private set; }
+        public ICommand RetrieveMissionsCommand { get; private set; }
+        public ICommand MovePendingToLiveCommand { get; private set; }
+        public ICommand RemoveDuplicatesCommand { get; private set; }
+        public ICommand SaveSettingsCommand { get; private set; }
+        public ICommand UpdateCommand { get; private set; }
+        public ICommand RemoveInvalidCommand { get; private set; }
+        public ICommand UnselectAllCommand { get; private set; }
 
         public bool CanConnect { get; set; } = true;
 
@@ -158,13 +148,11 @@ namespace FtpMissionsManipulatorApp
         {
             IsLiveLoading = true;
             await ShowMissionsAsync(() => _source.GetMissionsFromDirectoryAsync(LiveDirectory), LiveMissions);
-            OnPropertyChanged(() => Duplicates);
-            OnPropertyChanged(() => LiveMissions);
+            UpdateFilteredLive();
             IsLiveLoading = false;
             IsPendingLoading = true;
             await ShowMissionsAsync(() => _source.GetMissionsFromDirectoryAsync(PendingDirectory), PendingMissions);
             IsPendingLoading = false;
-            OnPropertyChanged(() => PendingMissions);
 
             await ShowMissionsAsync(GetDuplicatesAsync, Duplicates);
             await ShowMissionsAsync(GetUpdatesAsync, Updates);
@@ -282,10 +270,15 @@ namespace FtpMissionsManipulatorApp
             _settingsStorage.SetSetting("Port", Port.ToString());
         }
 
+        private void UnselectAllAsync()
+        {
+            SelectedPending = new List<Mission>();
+        }
+
         public ObservableCollection<Mission> PendingMissions { get; } = new ObservableCollection<Mission>();
         public ObservableCollection<Mission> LiveMissions { get; } = new ObservableCollection<Mission>();
+        public ObservableCollection<Mission> FilteredLiveMissions { get; } = new ObservableCollection<Mission>();
         public ObservableCollection<Mission> Duplicates { get; } = new ObservableCollection<Mission>();
-
         public IList<Mission> SelectedDuplicates
         {
             get => _selectedDuplicates;
@@ -293,8 +286,11 @@ namespace FtpMissionsManipulatorApp
             {
                 _selectedDuplicates = value;
                 OnPropertyChanged();
+                OnPropertyChanged(() => AnyDuplicatesSelected);
             }
         }
+
+        public bool AnyDuplicatesSelected => SelectedDuplicates.Any();
 
         public ObservableCollection<string> InvalidMissions { get; } = new ObservableCollection<string>();
         public IList<string> SelectedInvalid
@@ -304,8 +300,11 @@ namespace FtpMissionsManipulatorApp
             {
                 _selectedInvalid = value;
                 OnPropertyChanged();
+                OnPropertyChanged(() => AnyInvalidSelected);
             }
         }
+        public bool AnyInvalidSelected => SelectedInvalid.Any();
+
         public ObservableCollection<MissionUpdate> Updates { get; } = new ObservableCollection<MissionUpdate>();
         public IList<MissionUpdate> SelectedUpdates
         {
@@ -314,8 +313,11 @@ namespace FtpMissionsManipulatorApp
             {
                 _selectedUpdates = value;
                 OnPropertyChanged();
+                OnPropertyChanged(() => AnyUpdatesSelected);
             }
         }
+
+        public bool AnyUpdatesSelected => SelectedUpdates.Any();
 
         public bool AllFieldsFilled => !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Username) && Port != 0;
         public bool IsConnected => _source != null;
@@ -351,6 +353,38 @@ namespace FtpMissionsManipulatorApp
             {
                 _port = value;
                 OnPropertyChanged(() => AllFieldsFilled);
+            }
+        }
+
+        public IList<Mission> SelectedPending
+        {
+            get => _selectedPending;
+            set
+            {
+                _selectedPending = value;
+                UpdateFilteredLive();
+                OnPropertyChanged();
+                OnPropertyChanged(() => AnyPendingSelected);
+            }
+        }
+
+        public bool AnyPendingSelected => SelectedPending.Any();
+
+        private void UpdateFilteredLive()
+        {
+            if (_selectedPending == null || _selectedPending.Count != 1)
+            {
+                FilteredLiveMissions.Clear();
+                foreach (var mission in LiveMissions)
+                    FilteredLiveMissions.Add(mission);
+            }
+            else
+            {
+                var selected = _selectedPending.First();
+
+                FilteredLiveMissions.Clear();
+                foreach (var mission in LiveMissions.Where(m => m.Name == selected.Name && m.Type == selected.Type))
+                    FilteredLiveMissions.Add(mission);
             }
         }
 

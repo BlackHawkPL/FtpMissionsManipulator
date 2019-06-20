@@ -74,5 +74,10 @@ namespace FtpMissionsManipulatorApp
         {
             UpdateCollection<MissionUpdate>(list => _viewModel.SelectedUpdates = list, sender);
         }
+
+        private void PendingListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateCollection<Mission>(list => _viewModel.SelectedPending = list, sender);
+        }
     }
 }

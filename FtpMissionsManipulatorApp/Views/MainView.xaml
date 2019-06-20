@@ -5,94 +5,117 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FtpMissionsManipulatorApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000" MinHeight="400" MinWidth="800" d:DataContext="{d:DesignInstance local:MainViewModel}">
+        Title="MainWindow" Height="600" Width="1000" MinHeight="400" MinWidth="800"
+        d:DataContext="{d:DesignInstance local:MainViewModel}">
 
     <Window.Resources>
         <Thickness x:Key="TextBoxMargin">5,0,5,0</Thickness>
         <Thickness x:Key="ButtonMargin">5,5,5,0</Thickness>
-        <local:RgColorConverter x:Key="colorConverter" />
+        <local:RgColorConverter x:Key="ColorConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </Window.Resources>
 
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"></ColumnDefinition>
-            <ColumnDefinition Width="3*"></ColumnDefinition>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="3*" />
         </Grid.ColumnDefinitions>
         <Grid.Resources>
             <Style TargetType="{x:Type DockPanel}">
-                <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+                <Setter Property="Margin" Value="{StaticResource TextBoxMargin}" />
             </Style>
         </Grid.Resources>
         <DockPanel Grid.Column="0">
             <DockPanel.Resources>
                 <Style TargetType="{x:Type Button}">
-                    <Setter Property="Margin" Value="{StaticResource ButtonMargin}"/>
+                    <Setter Property="Margin" Value="{StaticResource ButtonMargin}" />
                 </Style>
                 <Style TargetType="{x:Type TextBox}">
-                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}" />
                 </Style>
                 <Style TargetType="{x:Type PasswordBox}">
-                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}"/>
+                    <Setter Property="Margin" Value="{StaticResource TextBoxMargin}" />
                 </Style>
             </DockPanel.Resources>
             <Label DockPanel.Dock="Top">User name</Label>
-            <TextBox DockPanel.Dock="Top" Text="{Binding Username}"/>
+            <TextBox DockPanel.Dock="Top" Text="{Binding Username}" />
             <Label DockPanel.Dock="Top">Password</Label>
-            <PasswordBox DockPanel.Dock="Top" PasswordChanged="PasswordBox_PasswordChanged"/>
+            <PasswordBox DockPanel.Dock="Top" PasswordChanged="PasswordBox_PasswordChanged" />
             <Label DockPanel.Dock="Top">Address</Label>
             <Grid DockPanel.Dock="Top">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"></ColumnDefinition>
-                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
-                <TextBox DockPanel.Dock="Left" Text="{Binding Address}" Grid.Column="0"/>
-                <TextBox DockPanel.Dock="Right" Text="{Binding Port}" Grid.Column="1"/>
+                <TextBox DockPanel.Dock="Left" Text="{Binding Address}" Grid.Column="0" />
+                <TextBox DockPanel.Dock="Right" Text="{Binding Port}" Grid.Column="1" />
             </Grid>
             <Button DockPanel.Dock="Top" Command="{Binding SaveSettingsCommand}">Save settings</Button>
             <Button DockPanel.Dock="Top" Command="{Binding ConnectCommand}">Connect</Button>
             <Button DockPanel.Dock="Top" Command="{Binding RetrieveMissionsCommand}">Retrieve all missions</Button>
-            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="{Binding IsLoading}" Height="10" Margin="5"></ProgressBar>
-            <Label DockPanel.Dock="Top" Content="{Binding CurrentStatus}" Foreground="{Binding IsConnected, Converter={StaticResource colorConverter}}" />
+            <ProgressBar DockPanel.Dock="Top" IsIndeterminate="{Binding IsLoading}" Height="10" Margin="5" />
+            <Label DockPanel.Dock="Top" Content="{Binding CurrentStatus}"
+                   Foreground="{Binding IsConnected, Converter={StaticResource ColorConverter}}" />
             <DockPanel DockPanel.Dock="Top">
                 <Label>In progress:</Label>
-                <Label Content="{Binding CurrentOperation}"></Label>
+                <Label Content="{Binding CurrentOperation}" />
             </DockPanel>
             <Label DockPanel.Dock="Top">Log:</Label>
-            <ListView VerticalAlignment="Stretch" ItemsSource="{Binding LoggedOperations}"></ListView>
+            <ListView VerticalAlignment="Stretch" ItemsSource="{Binding LoggedOperations}" />
         </DockPanel>
         <TabControl Grid.Column="1">
-            <TabItem Header="Overview" IsSelected="True" >
+            <TabItem Header="Overview" IsSelected="True">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <DockPanel Grid.Column="0">
-                        <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Pending Missions</Label>
-                        <ListView ItemsSource="{Binding PendingMissions}" DockPanel.Dock="Bottom" />
+                        <Grid DockPanel.Dock="Top">
+                            <Button HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2"
+                                    Command="{Binding UnselectAllCommand}"
+                                    Visibility="{Binding AnyPendingSelected, Converter={StaticResource BoolToVisibility}}">
+                                unselect
+                            </Button>
+                            <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Pending Missions</Label>
+                        </Grid>
+                        <ListView x:Name="PendingListView" ItemsSource="{Binding PendingMissions}"
+                                  DockPanel.Dock="Bottom" SelectionChanged="PendingListView_SelectionChanged" />
                     </DockPanel>
                     <DockPanel Grid.Column="1">
                         <Label DockPanel.Dock="Top" HorizontalAlignment="Center">Live Missions</Label>
-                        <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding LiveMissions}" />
+                        <ListView DockPanel.Dock="Bottom" ItemsSource="{Binding FilteredLiveMissions}" />
                     </DockPanel>
-                    </Grid>
+                </Grid>
             </TabItem>
             <TabItem Header="Updates" IsEnabled="{Binding IsConnected}">
                 <DockPanel>
-                    <Button DockPanel.Dock="Bottom" Command="{Binding UpdateCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Update</Button>
-                    <ListView x:Name="UpdatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Updates}" Margin="10" SelectionChanged="UpdatesListView_SelectionChanged"></ListView>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding UpdateCommand}" Width="100" Height="40"
+                            Margin="10,0,0,10" HorizontalAlignment="Left">
+                        Update
+                    </Button>
+                    <ListView x:Name="UpdatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Updates}" Margin="10"
+                              SelectionChanged="UpdatesListView_SelectionChanged" />
                 </DockPanel>
             </TabItem>
             <TabItem Header="Duplicates" IsEnabled="{Binding IsConnected}">
                 <DockPanel>
-                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveDuplicatesCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Remove selected</Button>
-                    <ListView x:Name="DuplicatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Duplicates}" Margin="10" SelectionChanged="DuplicatesListView_SelectionChanged"></ListView>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveDuplicatesCommand}" Width="100" Height="40"
+                            Margin="10,0,0,10" HorizontalAlignment="Left">
+                        Remove selected
+                    </Button>
+                    <ListView x:Name="DuplicatesListView" DockPanel.Dock="Top" ItemsSource="{Binding Duplicates}"
+                              Margin="10" SelectionChanged="DuplicatesListView_SelectionChanged" />
                 </DockPanel>
             </TabItem>
             <TabItem Header="Invalid missions" IsEnabled="{Binding IsConnected}">
                 <DockPanel>
-                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveInvalidCommand}" Width="100" Height="40" Margin="10,0,0,10" HorizontalAlignment="Left">Remove selected</Button>
-                    <ListView x:Name="InvalidListView" DockPanel.Dock="Top" ItemsSource="{Binding InvalidMissions}" Margin="10" SelectionChanged="InvalidListView_SelectionChanged"></ListView>
+                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveInvalidCommand}" Width="100" Height="40"
+                            Margin="10,0,0,10" HorizontalAlignment="Left">
+                        Remove selected
+                    </Button>
+                    <ListView x:Name="InvalidListView" DockPanel.Dock="Top" ItemsSource="{Binding InvalidMissions}"
+                              Margin="10" SelectionChanged="InvalidListView_SelectionChanged" />
                 </DockPanel>
             </TabItem>
             <TabItem Header="Pick missions" IsEnabled="{Binding IsConnected}">
