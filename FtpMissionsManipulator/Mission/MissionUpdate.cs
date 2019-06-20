@@ -50,17 +50,26 @@ namespace FtpMissionsManipulator
         {
             StringBuilder result = new StringBuilder();
 
-            result.Append(OldMissions.First().Name + " ");
+            result.Append(NewMissions.First().Name + " updated from ");
+
+            if (!OldMissions.Any())
+            {
+                result.Append("NONE");
+            }
+            var isFirst = true;
             foreach (var version in OldMissions.Select(m => m.Version))
             {
-                result.Append(version);
+                result.Append((isFirst ? "" : ", ") + version);
+                isFirst = false;
             }
 
-            result.Append(" -> ");
+            result.Append(" to ");
 
+            isFirst = true;
             foreach (var version in NewMissions.Select(m => m.Version))
             {
-                result.Append(version);
+                result.Append((isFirst ? "" : ", ") + version);
+                isFirst = false;
             }
 
             return result.ToString();

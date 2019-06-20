@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -15,7 +16,7 @@ using MessageBox = System.Windows.Forms.MessageBox;
 
 namespace FtpMissionsManipulatorApp
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         private const string LiveDirectory = "SRV1";
         private const string PendingDirectory = "_FINAL";
@@ -32,14 +33,16 @@ namespace FtpMissionsManipulatorApp
         private IList<string> _selectedInvalid = new List<string>();
         private IList<MissionUpdate> _selectedUpdates = new List<MissionUpdate>();
         private IList<Mission> _selectedPending = new List<Mission>();
+        private IDisposable _loggerSubscription;
+        private readonly SynchronizationContext _synchronizationContext;
 
         public MainViewModel(IMissionSourceFactory factory, ISettingsStorage settingsStorage)
         {
+            _synchronizationContext = SynchronizationContext.Current;
             _missionSourceFactory = factory;
             _settingsStorage = settingsStorage;
 
             SetupCommands();
-
             RetrieveSavedSettings();
         }
 
@@ -134,8 +137,11 @@ namespace FtpMissionsManipulatorApp
         }
         private async Task ConnectAsync()
         {
-            _source = await _missionSourceFactory.SetupAsync(Address, Port, Username, Password)
-                .ConfigureAwait(false);
+            _source = await _missionSourceFactory.SetupAsync(Address, Port, Username, Password);
+            var logsSource = _missionSourceFactory.GetLogsSource();
+
+            _loggerSubscription?.Dispose();
+            _loggerSubscription = logsSource.Logs.Subscribe(OnNewLog);
 
             OnPropertyChanged(() => IsConnected);
             OnPropertyChanged(() => CurrentStatus);
@@ -187,14 +193,24 @@ namespace FtpMissionsManipulatorApp
         private async Task<IEnumerable<MissionUpdate>> GetUpdatesAsync()
         {
             var groupedPending = PendingMissions
-                .GroupBy(m => (m.Name, m.Type));
+                .GroupBy(m => (m.Name, m.Type)).ToArray();
             var groupedLive = LiveMissions
                 .GroupBy(m => (m.Name, m.Type));
 
             var updates = groupedPending.Join(groupedLive,
                 m => (m.First().Name, m.First().Type),
                 m => (m.First().Name, m.First().Type),
-                 (newMissions, oldMissions) => new MissionUpdate(oldMissions, newMissions));
+                 (newMissions, oldMissions) => new MissionUpdate(oldMissions, newMissions)).ToList();
+
+
+            foreach (var pending in groupedPending)
+            {
+                if (updates.Select(u => u.NewMissions.First().Name).Contains(pending.Key.Name))
+                    continue;
+
+                var update = new MissionUpdate(Enumerable.Empty<Mission>(), pending);
+                updates.Add(update);
+            }
 
             return await Task.FromResult(updates);
         }
@@ -273,6 +289,11 @@ namespace FtpMissionsManipulatorApp
         private void UnselectAllAsync()
         {
             SelectedPending = new List<Mission>();
+        }
+
+        private void OnNewLog(string log)
+        {
+            _synchronizationContext.Post(_ => LoggedOperations.Insert(0, log), null);
         }
 
         public ObservableCollection<Mission> PendingMissions { get; } = new ObservableCollection<Mission>();
@@ -393,5 +414,10 @@ namespace FtpMissionsManipulatorApp
         public ObservableCollection<string> LoggedOperations { get; } = new ObservableCollection<string>();
 
         public string CurrentOperation => "Idle";
+
+        public void Dispose()
+        {
+            _loggerSubscription?.Dispose();
+        }
     }
 }
