@@ -58,6 +58,7 @@ namespace FtpMissionsManipulator
 
         public async Task MovePendingToLiveAsync()
         {
+            await Task.CompletedTask;
             //todo mission can be moved in the process: first check if it's still there
             //todo tests for operations with faults
             //var updates = await GetUpdatedMissionsAsync().ConfigureAwait(false);
