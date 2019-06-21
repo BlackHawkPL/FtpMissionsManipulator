@@ -40,5 +40,10 @@ namespace FtpMissionsManipulator.MissionSource
         {
             return _inner.TryConnectAsync(host, port, user, pass);
         }
+
+        public Task ConnectAsync(string host, int port, string user, string pass)
+        {
+            return _inner.ConnectAsync(host, port, user, pass);
+        }
     }
 }

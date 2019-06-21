@@ -17,12 +17,9 @@ namespace FtpMissionsManipulator
             var builder = new ContainerBuilder();
 
             var connection = new DelayedFtpConnection(new FtpConnection());
-            var couldConnect = await connection
-                .TryConnectAsync(host, port, username, password)
-                .ConfigureAwait(false);
 
-            if (!couldConnect)
-                return null;
+            await connection
+                .ConnectAsync(host, port, username, password);
 
             builder.RegisterType<MissionsManipulator>().As<IMissionsManipulator>();
             builder.RegisterType<FtpMissionsSource>().As<IMissionsSource>();
@@ -96,7 +93,10 @@ namespace FtpMissionsManipulator
         public async Task<bool> MoveMissionToFolderAsync(Mission mission, string source, string destination)
         {
             _logger.OnNext($"Moving {mission} missions from {source} to {destination}");
-            return await _inner.MoveMissionToFolderAsync(mission, source, destination);
+            var success = await _inner.MoveMissionToFolderAsync(mission, source, destination);
+            if (!success)
+                _logger.OnNext($"Failed to move {mission}");
+            return success;
         }
 
         public async Task DeleteMissionAsync(Mission mission, string directory)

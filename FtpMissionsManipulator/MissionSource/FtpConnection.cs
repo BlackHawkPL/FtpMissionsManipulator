@@ -29,6 +29,20 @@ namespace FtpMissionsManipulator.MissionSource
 
         public async Task<bool> TryConnectAsync(string host, int port, string user, string pass)
         {
+            try
+            {
+                await ConnectAsync(host, port, user, pass);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task ConnectAsync(string host, int port, string user, string pass)
+        {
             var client = new FtpClient(host, port, user, pass)
             {
                 ConnectTimeout = 5000
@@ -36,19 +50,13 @@ namespace FtpMissionsManipulator.MissionSource
 
             try
             {
-                await client.ConnectAsync().ConfigureAwait(false);
+                await client.ConnectAsync();
+                _client = client;
             }
-            catch (FtpAuthenticationException)
+            catch (Exception e)
             {
-                return false;
+                throw new FtpException(e.Message);
             }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            _client = client;
-            return true;
         }
     }
 }

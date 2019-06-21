@@ -270,7 +270,16 @@ namespace FtpMissionsManipulatorApp
 
         private async Task ConnectAsync()
         {
-            _source = await _missionSourceFactory.SetupAsync(Address, Port, Username, Password);
+            try
+            {
+                _source = await _missionSourceFactory.SetupAsync(Address, Port, Username, Password);
+            }
+            catch (FtpException e)
+            {
+                MessageBox.Show($"Unable to connect\n\n{e.Message}");
+                return;
+            }
+
             var logsSource = _missionSourceFactory.GetLogsSource();
 
             _loggerSubscription?.Dispose();
@@ -278,9 +287,6 @@ namespace FtpMissionsManipulatorApp
 
             OnPropertyChanged(() => IsConnected);
             OnPropertyChanged(() => CurrentStatus);
-
-            if (_source == null)
-                MessageBox.Show("Could not connect");
 
             await GetMissionsAsync();
         }
@@ -370,9 +376,21 @@ namespace FtpMissionsManipulatorApp
             foreach (var update in SelectedUpdates)
             {
                 var latestPending = update.NewMissions.OrderByDescending(m => m.Version).First();
-                var latestLive = update.OldMissions.OrderByDescending(m => m.Version).First();
-                var isLatestInPending = latestPending.Version.CompareTo(latestLive.Version) > 0;
-                var latest = isLatestInPending ? latestPending : latestLive;
+
+                Mission latest;
+                bool isLatestInPending;
+                if (update.OldMissions.Any())
+                {
+                    var latestLive = update.OldMissions.OrderByDescending(m => m.Version).First();
+                    isLatestInPending = latestPending.Version.CompareTo(latestLive.Version) > 0;
+                    latest = isLatestInPending ? latestPending : latestLive;
+                }
+                else
+                {
+                    isLatestInPending = true;
+                    latest = latestPending;
+                }
+
                 bool confirmed;
 
                 if (update.OldMissions.Count() > 1 || update.NewMissions.Count() > 1)
