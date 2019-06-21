@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Linq;
 
 namespace FtpMissionsManipulatorApp
 {
@@ -29,6 +30,11 @@ namespace FtpMissionsManipulatorApp
         public string GetSetting(string name)
         {
             return ConfigurationManager.AppSettings[name];
+        }
+
+        public bool HasSetting(string name)
+        {
+            return ConfigurationManager.AppSettings.AllKeys.Contains(name);
         }
     }
 }
