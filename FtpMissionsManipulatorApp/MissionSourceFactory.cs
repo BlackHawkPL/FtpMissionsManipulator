@@ -16,24 +16,18 @@ namespace FtpMissionsManipulator
         {
             var builder = new ContainerBuilder();
 
-            var connection = new DelayedFtpConnection(new FtpConnection());
+            _loggingSource = new LoggingProvider();
+            var connection = new DelayedFtpConnection(new FtpConnection(log => _loggingSource.OnNext(log)));
 
             await connection
                 .ConnectAsync(host, port, username, password);
 
-            builder.RegisterType<MissionsManipulator>().As<IMissionsManipulator>();
             builder.RegisterType<FtpMissionsSource>().As<IMissionsSource>();
             builder.RegisterType<MissionFactory>().As<IMissionFactory>();
             builder.RegisterType<MissionFilenameParser>().As<IMissionFilenameParser>();
             builder.RegisterType<MissionVersionComparer>().As<IMissionVersionComparer>();
             builder.RegisterType<MissionVersionFactory>().As<IMissionVersionFactory>();
             builder.RegisterType<TimeProvider>().As<ITimeProvider>();
-            //builder.RegisterType<FtpConnection>().As<IFtpConnection>();
-            //builder.RegisterDecorator<CachedFtpConnection, IFtpConnection>();
-            //builder.RegisterDecorator<ConcurrentFtpConnection, IFtpConnection>();
-            //builder.RegisterDecorator<DelayedFtpConnection, IFtpConnection>();
-
-            _loggingSource = new LoggingProvider();
 
             builder.RegisterInstance(_loggingSource).As<ILoggingProvider>();
             builder.RegisterDecorator<LoggingMissionSourceDecorator, IMissionsSource>();

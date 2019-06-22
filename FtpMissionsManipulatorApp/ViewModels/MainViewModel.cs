@@ -56,6 +56,7 @@ namespace FtpMissionsManipulatorApp
         public ICommand RemoveInvalidCommand { get; private set; }
         public ICommand UnselectAllCommand { get; private set; }
         public ICommand MoveToBrokenCommand { get; private set; }
+        public ICommand RetrieveInvalidCommand { get; private set; }
 
         public bool CanConnect { get; set; } = true;
 
@@ -226,6 +227,12 @@ namespace FtpMissionsManipulatorApp
             UnselectAllCommand = SetupCommand(async () => await new Task(UnselectAllAsync), () => AnyPendingSelected,
                 v => IsLoading = v);
             MoveToBrokenCommand = SetupCommand(MoveSelectedToBrokenAsync, () => AnyLiveSelected, v => IsLoading = v);
+            RetrieveInvalidCommand = SetupCommand(RetrieveInvalidAsync, () => IsConnected, v => IsLoading = v);
+        }
+
+        private async Task RetrieveInvalidAsync()
+        {
+            await ShowMissionsAsync(() => _source.GetFaultyFilesAsync(LiveDirectory), InvalidMissions);
         }
 
         private ICommand SetupCommand(Func<Task> action, Expression<Func<bool>> canExecute, Action<bool> progressChange)
@@ -234,7 +241,7 @@ namespace FtpMissionsManipulatorApp
             var command = new DelegateCommand(async () =>
                 {
                     progress.Report(true);
-                    await action();
+                    await action().ConfigureAwait(false);
                     progress.Report(false);
                 }, canExecute.Compile())
                 .ObservesProperty(canExecute);
@@ -303,7 +310,6 @@ namespace FtpMissionsManipulatorApp
 
             await ShowMissionsAsync(GetDuplicatesAsync, Duplicates);
             await ShowMissionsAsync(GetUpdatesAsync, Updates);
-            await ShowMissionsAsync(() => _source.GetFaultyFilesAsync(LiveDirectory), InvalidMissions);
         }
 
         private async Task ShowMissionsAsync<T>(Func<Task<IEnumerable<T>>> source, ICollection<T> destination)
@@ -351,22 +357,52 @@ namespace FtpMissionsManipulatorApp
 
         private async Task RemoveDuplicatesAsync()
         {
-            foreach (var duplicate in SelectedDuplicates) await _source.DeleteMissionAsync(duplicate, LiveDirectory);
+            foreach (var duplicate in SelectedDuplicates)
+            {
+                try
+                {
+                    await _source.DeleteMissionAsync(duplicate, LiveDirectory);
+                }
+                catch (FtpException e)
+                {
+                    MessageBox.Show($"Unable to delete {duplicate}\n\n{e.Message}");
+                }
+            }
 
             await GetMissionsAsync();
         }
 
         private async Task RemoveInvalidAsync()
         {
-            foreach (var invalid in SelectedInvalid) await _source.DeleteFileAsync(invalid, LiveDirectory);
+            foreach (var invalid in SelectedInvalid)
+            {
+                try
+                {
+                    await _source.DeleteFileAsync(invalid, LiveDirectory);
+                }
+                catch (FtpException e)
+                {
+                    MessageBox.Show($"Unable to move {invalid}\n\n{e.Message}");
+                }
+            }
 
             await GetMissionsAsync();
+            await RetrieveInvalidAsync();
         }
 
         private async Task MoveSelectedToBrokenAsync()
         {
             foreach (var broken in SelectedLive)
-                await _source.MoveMissionToFolderAsync(broken, LiveDirectory, BrokenDirectory);
+            {
+                try
+                {
+                    await _source.MoveMissionToFolderAsync(broken, LiveDirectory, BrokenDirectory);
+                }
+                catch (FtpException e)
+                {
+                    MessageBox.Show($"Unable to move {broken.FullName}\n\n{e.Message}");
+                }
+            }
 
             await GetMissionsAsync();
         }
@@ -404,16 +440,29 @@ namespace FtpMissionsManipulatorApp
                 var pendingMissionsToDelete =
                     update.NewMissions.Where(m => !m.Equals(latest));
 
-                foreach (var mission in pendingMissionsToDelete)
-                    await _source.DeleteMissionAsync(mission, PendingDirectory);
+                try
+                {
+                    foreach (var mission in pendingMissionsToDelete)
+                    {
+                            await _source.DeleteMissionAsync(mission, PendingDirectory);
+                    }
 
-                var liveMissionsToDelete = update.OldMissions.Where(m => !m.Equals(latest));
+                    var liveMissionsToDelete = update.OldMissions.Where(m => !m.Equals(latest));
 
-                foreach (var mission in liveMissionsToDelete)
-                    await _source.DeleteMissionAsync(mission, LiveDirectory);
+                    foreach (var mission in liveMissionsToDelete)
+                    {
+                        await _source.DeleteMissionAsync(mission, LiveDirectory);
+                    }
 
-                if (isLatestInPending)
-                    await _source.MoveMissionToFolderAsync(latestPending, PendingDirectory, LiveDirectory);
+                    if (isLatestInPending)
+                    {
+                        await _source.MoveMissionToFolderAsync(latestPending, PendingDirectory, LiveDirectory);
+                    }
+                }
+                catch (FtpException e)
+                {
+                    MessageBox.Show($"Failed to perform update\n\n{e.Message}");
+                }
             }
 
             await GetMissionsAsync();

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FtpMissionsManipulator.MissionSource
@@ -40,6 +41,12 @@ namespace FtpMissionsManipulator.MissionSource
         public Task ConnectAsync(string host, int port, string user, string pass)
         {
             return _inner.ConnectAsync(host, port, user, pass);
+        }
+
+        public Action<string> LoggingAction
+        {
+            get => _inner.LoggingAction;
+            set => _inner.LoggingAction = value;
         }
     }
 }

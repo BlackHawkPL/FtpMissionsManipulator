@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Security;
 using System.Threading.Tasks;
 using FluentFTP;
 
@@ -8,23 +9,50 @@ namespace FtpMissionsManipulator.MissionSource
 {
     public class FtpConnection : IFtpConnection
     {
+        public Action<string> LoggingAction { get; set; }
         private FtpClient _client;
+
+        public FtpConnection(Action<string> loggingAction)
+        {
+            LoggingAction = loggingAction;
+        }
 
         public async Task<IEnumerable<string>> GetDirectoryListingAsync(string directory)
         {
-            var files = await _client.GetListingAsync(directory);
+            try
+            {
+                var files = await _client.GetListingAsync(directory);
 
-            return files.Select(f => f.Name);
+                return files.Select(f => f.Name);
+            }
+            catch (Exception e)
+            {
+                throw new FtpException(e.Message);
+            }
         }
 
         public async Task<bool> MoveFileAsync(string fileName, string sourceDir, string targetDir)
         {
-            return await _client.MoveFileAsync(sourceDir + '/' + fileName, targetDir + '/' + fileName);
+            try
+            {
+                return await _client.MoveFileAsync(sourceDir + '/' + fileName, targetDir + '/' + fileName);
+            }
+            catch (Exception e)
+            {
+                throw new FtpException(e.Message);
+            }
         }
 
         public async Task DeleteFileAsync(string fileName, string directory)
         {
-            await _client.DeleteFileAsync(directory + '/' + fileName);
+            try
+            {
+                await _client.DeleteFileAsync(directory + '/' + fileName);
+            }
+            catch (Exception e)
+            {
+                throw new FtpException(e.Message);
+            }
         }
 
         public async Task<bool> TryConnectAsync(string host, int port, string user, string pass)
@@ -45,13 +73,25 @@ namespace FtpMissionsManipulator.MissionSource
         {
             var client = new FtpClient(host, port, user, pass)
             {
-                ConnectTimeout = 5000
+                ConnectTimeout = 5000,
+                EncryptionMode = FtpEncryptionMode.Explicit,
+                
+            };
+            client.ValidateCertificate += (control, args) =>
+            {
+                if ((args.PolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) != 0)
+                    args.Accept = true;
             };
 
             try
             {
                 await client.ConnectAsync();
                 _client = client;
+                _client.OnLogEvent = (traceLevel, message) =>
+                {
+                    if (traceLevel == FtpTraceLevel.Warn)
+                        LoggingAction?.Invoke(message);
+                };
             }
             catch (Exception e)
             {

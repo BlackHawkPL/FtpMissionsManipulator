@@ -111,10 +111,18 @@
             </TabItem>
             <TabItem Header="Invalid missions" IsEnabled="{Binding IsConnected}">
                 <DockPanel>
-                    <Button DockPanel.Dock="Bottom" Command="{Binding RemoveInvalidCommand}" Width="100" Height="40"
-                            Margin="10,0,0,10" HorizontalAlignment="Left">
-                        Remove selected
-                    </Button>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <Button Command="{Binding RemoveInvalidCommand}" Width="100"
+                                Height="40"
+                                Margin="10,0,0,10" HorizontalAlignment="Left">
+                            Remove selected
+                        </Button>
+                        <Button DockPanel.Dock="Right" Command="{Binding RetrieveInvalidCommand}" Width="50"
+                                Height="20"
+                                Margin="10,0,0,10" HorizontalAlignment="Right">
+                            Refresh
+                        </Button>
+                    </DockPanel>
                     <ListView x:Name="InvalidListView" DockPanel.Dock="Top" ItemsSource="{Binding InvalidMissions}"
                               Margin="10" SelectionChanged="InvalidListView_SelectionChanged" />
                 </DockPanel>

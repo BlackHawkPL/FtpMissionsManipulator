@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FtpMissionsManipulator.MissionSource
@@ -11,5 +12,6 @@ namespace FtpMissionsManipulator.MissionSource
         Task<bool> TryConnectAsync(string host, int port, string user, string pass);
         Task ConnectAsync(string host, int port, string user, string pass);
 
+        Action<string> LoggingAction { get; set; }
     }
 }
