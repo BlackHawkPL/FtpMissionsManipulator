@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FtpMissionsManipulatorApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000" MinHeight="400" MinWidth="800"
+        Title="FTP Missions Manipulator" Height="600" Width="1000" MinHeight="400" MinWidth="800"
         d:DataContext="{d:DesignInstance local:MainViewModel}">
 
     <Window.Resources>
@@ -117,8 +117,8 @@
                                 Margin="10,0,0,10" HorizontalAlignment="Left">
                             Remove selected
                         </Button>
-                        <Button DockPanel.Dock="Right" Command="{Binding RetrieveInvalidCommand}" Width="50"
-                                Height="20"
+                        <Button DockPanel.Dock="Right" Command="{Binding RetrieveInvalidCommand}" Width="100"
+                                Height="40"
                                 Margin="10,0,0,10" HorizontalAlignment="Right">
                             Refresh
                         </Button>

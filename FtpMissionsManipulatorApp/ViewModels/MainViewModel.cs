@@ -16,6 +16,7 @@ using Prism.Commands;
 namespace FtpMissionsManipulatorApp
 {
     //todo mutex/disable buttons for exclusive operations
+    //todo cancellation via token
     public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         private const string LiveDirectory = "SRV1";
@@ -220,12 +221,10 @@ namespace FtpMissionsManipulatorApp
             RetrieveMissionsCommand = SetupCommand(GetMissionsAsync, () => IsConnected, v => IsLoading = v);
             RemoveDuplicatesCommand =
                 SetupCommand(RemoveDuplicatesAsync, () => AnyDuplicatesSelected, v => IsLoading = v);
-            SaveSettingsCommand = SetupCommand(async () => await new Task(SaveSettings), () => AllFieldsFilled,
-                v => IsLoading = v);
+            SaveSettingsCommand = SetupCommand(SaveSettings, () => AllFieldsFilled);
             UpdateCommand = SetupCommand(UpdateMissionsAsync, () => AnyUpdatesSelected, v => IsLoading = v);
             RemoveInvalidCommand = SetupCommand(RemoveInvalidAsync, () => AnyInvalidSelected, v => IsLoading = v);
-            UnselectAllCommand = SetupCommand(async () => await new Task(UnselectAllAsync), () => AnyPendingSelected,
-                v => IsLoading = v);
+            UnselectAllCommand = SetupCommand(UnselectAll, () => AnyPendingSelected);
             MoveToBrokenCommand = SetupCommand(MoveSelectedToBrokenAsync, () => AnyLiveSelected, v => IsLoading = v);
             RetrieveInvalidCommand = SetupCommand(RetrieveInvalidAsync, () => IsConnected, v => IsLoading = v);
         }
@@ -244,6 +243,14 @@ namespace FtpMissionsManipulatorApp
                     await action().ConfigureAwait(false);
                     progress.Report(false);
                 }, canExecute.Compile())
+                .ObservesProperty(canExecute);
+
+            return command;
+        }
+
+        private ICommand SetupCommand(Action action, Expression<Func<bool>> canExecute)
+        {
+            var command = new DelegateCommand(action, canExecute.Compile())
                 .ObservesProperty(canExecute);
 
             return command;
@@ -484,7 +491,7 @@ namespace FtpMissionsManipulatorApp
             _settingsStorage.SetSetting("Port", Port.ToString());
         }
 
-        private void UnselectAllAsync()
+        private void UnselectAll()
         {
             SelectedPending = new List<Mission>(); //todo bind selection index
         }

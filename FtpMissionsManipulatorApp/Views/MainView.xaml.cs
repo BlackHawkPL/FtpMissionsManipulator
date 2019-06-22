@@ -20,8 +20,9 @@ namespace FtpMissionsManipulatorApp
         {
             _viewModel = new MainViewModel(new MissionSourceFactory(), new SettingsStorage());
             DataContext = _viewModel;
+#if DEBUG
             PrepareTestDir();
-
+#endif
             InitializeComponent();
         }
 

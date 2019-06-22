@@ -17,8 +17,10 @@ namespace FtpMissionsManipulator
             var builder = new ContainerBuilder();
 
             _loggingSource = new LoggingProvider();
-            var connection = new DelayedFtpConnection(new FtpConnection(log => _loggingSource.OnNext(log)));
-
+            IFtpConnection connection = new FtpConnection(log => _loggingSource.OnNext(log));
+#if DEBUG
+            connection = new DelayedFtpConnection(connection);
+#endif
             await connection
                 .ConnectAsync(host, port, username, password);
 
